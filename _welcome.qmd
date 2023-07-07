@@ -1,0 +1,137 @@
+---
+title: "Reproducible analysis reports with eye-tracking reading time data"
+subtitle: "SoSe2023"
+author: "Daniela Palleschi"
+institute: Humboldt-Universität zu Berlin
+lang: en
+date: 2023-04-12
+format: 
+  pdf:
+    output-file: pdf-welcome.pdf
+    toc: true
+    number-sections: false
+    colorlinks: true
+    code-overflow: wrap
+  html:
+    output-file: sheet-welcome.html
+    number-sections: false
+    toc: true
+    code-overflow: wrap
+    code-tools: true
+    self-contained: true
+  revealjs:
+    output-file: slides-welcome.html
+    code-overflow: wrap
+    theme: [dark]
+    width: 1600
+    height: 900
+    progress: true
+    scrollable: true
+    # smaller: true
+    slide-number: c/t
+    code-link: true
+    # logo: logos/hu_logo.png
+    # css: logo.css
+    incremental: true
+    # number-sections: true
+    toc: true
+    toc-depth: 2
+    toc-title: 'Overview'
+    navigation-mode: linear
+    controls-layout: bottom-right
+    fig-cap-location: top
+    font-size: 0.6em
+    slide-level: 4
+    self-contained: true
+    title-slide-attributes: 
+      data-background-image: logos/logos.tif
+      data-background-size: 15%
+      data-background-position: 50% 92%
+editor_options: 
+  chunk_output_type: console
+bibliography: references/references.bib
+csl: references/apa.csl
+---
+
+```{r setup, eval = T, echo = F}
+knitr::opts_chunk$set(echo = F, # print chunks?
+                      eval = T, # run chunks?
+                      error = F, # print errors?
+                      warning = F, # print warnings?
+                      message = F, # print messages?
+                      cache = F # cache?; be careful with this!
+                      )
+```
+
+```{r, eval = T, cache = F}
+# Create references.json file based on the citations in this script
+rbbt::bbt_update_bib("_welcome.qmd")
+```
+
+
+
+
+# Welcome!
+
+-   the language of instruction is English
+-   Block course:
+    -   April 12-14 (10am-4pm)
+    -   June 30th (2-6pm)
+    -   July 1st (10am-4pm)
+    
+# Course Moodle
+
+Course name: Reproducible analysis reports with eye-tracking reading time data (Blockseminar)
+Enrolment Key: Rmatey
+
+Most documents are available as slides, html, and PDF. Choose whichever you prefer (I suggest html).
+
+## Course description
+
+- develop skills and know-how
+  + create reproducible **reports & presentations** of eye-tracking reading data
+  + common measures in **eye-tracking reading**
+  + importance of **reproducible workflow**
+  + **communicate** findings
+
+- hands-on exercises in RStudio with the R programming language
+  + data **wrangling** (`tidyverse`)
+  + data **visualisation** (`ggplot2`), 
+  + descriptive and inferential **statistics** (`lme4` and `lmerTest`)
+  
+## Course credits
+
+- 4 LP
+  + attendance and participation: 1LP
+  + In-class exercises and preparation: 1LP
+  + Assignments: 2 LP
+    1. Reproducible (pilot) analysis report + Pre-registration
+    2. Reproducible analysis report
+
+# Reading list
+
+-   this course does not have a heavy reading load, but a few readings are strongly recommended:
+    -   Open Science: @kathawalla_easing_2021 
+    -   Eye-tracking reading: @clifton_eye_2007; @vasishth_what_2013; 
+    -   A short recommendation for statistics for psycholinguists: @vasishth_statistical_2016
+    -   Statistics for Linguistics (textbook): @winter_statistics_2019 (E-book available via Grimm)
+
+## Further readings
+
+- there are lots of useful resources out there, specifically:
+  + Bodo Winter's tutorials on linear (mixed) models [@winter_linear_2013; @winter_very_2014]
+  + the [PsyTeachR](https://psyteachr.github.io/) website is a *great* resource for hands-on stats and/or data analysis in R from the University of Glasgow School of Psychology and Neuroscience
+  
+
+# Session Info {.unlisted .unnumbered visibility="uncounted"}
+
+Save your session info at the end of each document. Our results very often depend on the version of R/RStudio/a package we used. This is a great first step towards creating a reproducible workflow!
+
+```{r}
+sessionInfo()
+```
+
+# References {.unlisted .unnumbered visibility="uncounted"}
+
+::: {#refs custom-style="Bibliography"}
+:::
