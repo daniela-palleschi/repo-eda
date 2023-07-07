@@ -2,56 +2,9 @@
 title: "Eye-tracking during reading"
 subtitle: "What can we learn from the measures?"
 author: "Daniela Palleschi"
+date: "`r Sys.Date()`"
 institute: Humboldt-Universität zu Berlin
 lang: en
-date: 2023-04-12
-format:
-  revealjs:
-    output-file: slides-et_reading.html
-    code-overflow: wrap
-    theme: [dark]
-    width: 1600
-    height: 600
-    progress: true
-    # smaller: true
-    scrollable: true
-    slide-number: c/t
-    code-link: true
-    link-external-icon: true
-    embed-resources: true
-    # logo: logos/hu_logo.png
-    # css: logo.css
-    incremental: true
-    # number-sections: true
-    toc: true
-    toc-depth: 2
-    toc-title: 'Overview'
-    navigation-mode: linear
-    controls-layout: bottom-right
-    fig-cap-location: top
-    font-size: 0.6em
-    slide-level: 4
-    chalkboard: false
-    title-slide-attributes: 
-      data-background-image: logos/logos.tif
-      data-background-size: 15%
-      data-background-position: 50% 92%
-  html:
-    output-file: sheet-et_reading.html
-    number-sections: true
-    toc: true
-    code-overflow: wrap
-    code-tools: true
-    embed-resources: true
-    link-external-icon: true
-  pdf:
-    output-file: pdf-et_reading.pdf
-    toc: true
-    number-sections: true
-    colorlinks: true
-    code-overflow: wrap
-editor_options: 
-  chunk_output_type: console
 bibliography: references/references.json
 csl: references/apa.csl
 ---
