@@ -1,33 +1,5 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Reproducible analysis reports with eye-tracking reading time data",
-    "section": "",
-    "text": "1 Course Overview\nWelcome to the website for the course “Reproducible analysis reports with eye-tracking reading time data” for the Summer Semester 2023. Some quick info about the course:\nMost documents are available as slides, html, and PDF on Moodle. Choose whichever you prefer (I suggest html).\nSave your session info at the end of each document. Our results very often depend on the version of R/RStudio/a package we used. This is a great first step towards creating a reproducible workflow!\nR version 4.3.0 (2023-04-21)\nPlatform: aarch64-apple-darwin20 (64-bit)\nRunning under: macOS Ventura 13.2.1\n\nMatrix products: default\nBLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib \nLAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0\n\nlocale:\n[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8\n\ntime zone: Europe/Berlin\ntzcode source: internal\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nloaded via a namespace (and not attached):\n [1] htmlwidgets_1.6.2 compiler_4.3.0    fastmap_1.1.1     cli_3.6.1        \n [5] tools_4.3.0       htmltools_0.5.5   rstudioapi_0.14   yaml_2.3.7       \n [9] rmarkdown_2.22    knitr_1.43        jsonlite_1.8.5    xfun_0.39        \n[13] digest_0.6.31     rlang_1.1.1       evaluate_0.21"
-  },
-  {
-    "objectID": "index.html#course-description",
-    "href": "index.html#course-description",
-    "title": "Reproducible analysis reports with eye-tracking reading time data",
-    "section": "1.1 Course description",
-    "text": "1.1 Course description\n\ndevelop skills and know-how\n\ncreate reproducible reports & presentations of eye-tracking reading data\ncommon measures in eye-tracking reading\nimportance of reproducible workflow\ncommunicate findings\n\nhands-on exercises in RStudio with the R programming language\n\ndata wrangling (tidyverse)\ndata visualisation (ggplot2),\ndescriptive and inferential statistics (lme4 and lmerTest)"
-  },
-  {
-    "objectID": "index.html#course-credits",
-    "href": "index.html#course-credits",
-    "title": "Reproducible analysis reports with eye-tracking reading time data",
-    "section": "1.2 Course credits",
-    "text": "1.2 Course credits\n\n4 LP\n\nattendance and participation: 1LP\nIn-class exercises and preparation: 1LP\nAssignments: 2 LP\n\nReproducible (pilot) analysis report + Pre-registration\nReproducible analysis report"
-  },
-  {
-    "objectID": "index.html#further-readings",
-    "href": "index.html#further-readings",
-    "title": "Reproducible analysis reports with eye-tracking reading time data",
-    "section": "2.1 Further readings",
-    "text": "2.1 Further readings\n\nthere are lots of useful resources out there, specifically:\n\nBodo Winter’s tutorials on linear (mixed) models (winter_linear_2013?; winter_very_2014?)\nthe PsyTeachR website is a great resource for hands-on stats and/or data analysis in R from the University of Glasgow School of Psychology and Neuroscience"
-  },
-  {
     "objectID": "_reproducibility.html",
     "href": "_reproducibility.html",
     "title": "2  Reproducible Analyses",
