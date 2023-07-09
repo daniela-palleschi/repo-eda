@@ -565,5 +565,12 @@
     "title": "5  Data Visualisation with ggplot2",
     "section": "13.4 Stacked bar plots",
     "text": "13.4 Stacked bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Stacked and faceted barplot\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"stack\") +\n  theme_bw()\n\n\n\n\n\n13.4.1 Exercise\n\nChoose the barplot you like best for binary data\nReproduce that barplot, but with reg_in at the verb1 region\n\n\n\n\n\n\n\n\n13.4.2 Extra exercise\n\nCreate another bar plot, but for reg_out for all sentence regions\nUse facet_grid()\n\n\nto have facets by region (columns) and by tense (in 2 rows)"
+  },
+  {
+    "objectID": "modelling.html",
+    "href": "modelling.html",
+    "title": "Modelling",
+    "section": "",
+    "text": "After performing our exploratory data analysis (EDA), we’re ready to begin testing our hypotheses. We’ll learn about linear regression, ending with linear mixed models."
   }
 ]
