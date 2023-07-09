@@ -1,0 +1,9 @@
+---
+format: 
+  pdf: default
+  html: default
+---
+
+# Exploratory Data Analysis
+
+Exploratory Data Analysis (EDA) refers to the initial exploration of our data. Important steps we will cover are Data Wrangling (tidying and transforming your data) and Data Visualisation.

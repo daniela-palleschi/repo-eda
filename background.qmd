@@ -1,0 +1,10 @@
+---
+format: 
+  pdf: default
+  html: default
+---
+
+# Background
+
+This section provides the conceptual information relevant to reproducible analysis with eye-tracking during reading data. We first learn what reproducibility is in terms of research and data analysis, and why it's important. We'll then get a short overview of eye-tracking during reading, and then an introduction into our first dataset. Note that the data is only available on the Course Moodle for the time being.
+

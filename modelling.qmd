@@ -1,0 +1,10 @@
+---
+format: 
+  pdf: default
+  html: default
+---
+
+# Modelling
+
+After performing our exploratory data analysis (EDA), we're ready to begin testing our hypotheses. We'll learn about linear regression, ending with linear mixed models.
+
