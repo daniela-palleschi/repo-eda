@@ -418,5 +418,152 @@
     "title": "4  Data wrangling",
     "section": "Important functions",
     "text": "Important functions\n\n\n\n\n\n\n\nread_csv()\nread-in a csv as a tibble (from readr package)\n\n\nrename()\nrename variables\n\n\nrelocate()\nmove variables\n\n\nmutate()\nchange or create new variables\n\n\nif_else()\ncondition for `mutate()`\n\n\ncase_when()\nhandle multiple conditions for `mutate()`\n\n\ngroup_by()\ngroup by a certain variable\n\n\nselect()\nkeep (or exclude) certain variables\n\n\nfilter()\nkeep (or exclude) rows based on some criteria\n\n\ndistinct()\nkeep rows with distinct value of given variable(s)\n\n\narrange()\nsort variable(s) in ascending or descending order\n\n\nseparate()\nsplit a variable into multiple variables\n\n\npivot_longer()\nmake wide data longer\n\n\npivot_wider()\nmake long data wider"
+  },
+  {
+    "objectID": "data_viz.html",
+    "href": "data_viz.html",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "",
+    "text": "6 Data communication\niris |&gt; \n  ggplot(aes(x=Sepal.Length)) +\n  geom_histogram() +\n  labs(title = \"A histogram\",\n       x = \"variable\")\niris |&gt; \n  ggplot(aes(x=Sepal.Length)) +\n  geom_density() +\n  labs(title = \"A density plot\",\n       x = \"variable\")\nNordmann et al. (2022)\nNordmann & DeBruine (2022)\nWickham et al. (n.d.), Chapter 2"
+  },
+  {
+    "objectID": "data_viz.html#load-packages-and-data",
+    "href": "data_viz.html#load-packages-and-data",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "6.1 Load packages and data",
+    "text": "6.1 Load packages and data\n\n# load tidyverse\nlibrary(tidyverse)\n\n# load data\ndf_lifetime &lt;- readr::read_csv(here::here(\"data/tidy_data_lifetime_pilot.csv\"), \n                               # for special characters\n                               locale = readr::locale(encoding = \"latin1\") \n                               ) |&gt;\n  mutate_if(is.character,as.factor) |&gt; # all character variables as factor\n  filter(type == \"critical\", # only critical trials\n         px != \"px3\") # this participant had lots of 0's for some reason"
+  },
+  {
+    "objectID": "data_viz.html#tables",
+    "href": "data_viz.html#tables",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "6.2 Tables",
+    "text": "6.2 Tables\n\nwe can create summaries of our data\n\n\n\nCode\n# compute summary \nsummary_ff &lt;- df_lifetime |&gt; \n  filter(region==\"verb\") |&gt; \n  group_by(condition,lifetime,tense) %&gt;%\n  summarise(N = n(),\n            mean.ff = mean(ff, na.rm = T),\n            sd = sd(ff, na.rm = T)) %&gt;%\n  # compute standard error, confidence intervals, and lower/upper ci bounds\n  mutate(se = sd / sqrt(N),\n         ci = qt(1 - (0.05 / 2), N - 1) * se,\n         lower.ci = mean.ff - qt(1 - (0.05 / 2), N - 1) * se,\n         upper.ci = mean.ff + qt(1 - (0.05 / 2), N - 1) * se)\n\n\n\nand print the output with the kable() function from the knitr package\n\nfor extra customisation you can also use the kableExtra package (e.g., with the kable_styling() function)\n\n\n\n# install.packages(\"knitr\") # if not yet installed\nknitr::kable(summary_ff, digits=1,\n             caption = \"Table with summmary statistics for first-fixation duration at the verb region\")\n\n\nTable with summmary statistics for first-fixation duration at the verb region\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ncondition\nlifetime\ntense\nN\nmean.ff\nsd\nse\nci\nlower.ci\nupper.ci\n\n\n\n\ndeadPP\ndead\nPP\n140\n198.9\n57.9\n4.9\n9.7\n189.2\n208.6\n\n\ndeadSF\ndead\nSF\n139\n194.6\n67.9\n5.8\n11.4\n183.2\n205.9\n\n\nlivingPP\nliving\nPP\n140\n194.2\n77.3\n6.5\n12.9\n181.3\n207.1\n\n\nlivingSF\nliving\nSF\n140\n186.0\n57.6\n4.9\n9.6\n176.4\n195.6\n\n\n\n\n\n\n6.2.1 Exercise\n\ninstall the knitr package (install.packages(\"knitr\"))\ncreate an object with some summary statistics of the variable rt\n\n\ncall it summary_rt\n\n\nuse kable() from knitr to print a table\n\n\nknitr::kable(summary_rt, digits=1,\n             caption = \"Summary of reaction times (ms) per condition\")\n\n\nSummary of reaction times (ms) per condition\n\n\nlifetime\ntense\ncondition\nN\nmean.rt\nsd\n\n\n\n\ndead\nPP\ndeadPP\n140\n3530.5\n2915.8\n\n\ndead\nSF\ndeadSF\n139\n1747.0\n1153.4\n\n\nliving\nPP\nlivingPP\n140\n2257.7\n1346.3\n\n\nliving\nSF\nlivingSF\n140\n2578.1\n1958.7"
+  },
+  {
+    "objectID": "data_viz.html#start-layering",
+    "href": "data_viz.html#start-layering",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.1 Start layering",
+    "text": "9.1 Start layering\n\ndf_lifetime |&gt; ggplot(aes(ff)) # aes = 'aesthetic'"
+  },
+  {
+    "objectID": "data_viz.html#add-labels",
+    "href": "data_viz.html#add-labels",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.2 Add labels",
+    "text": "9.2 Add labels\n\ndf_lifetime |&gt; ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixation times\",\n       x = \"First fixation times (ms)\")"
+  },
+  {
+    "objectID": "data_viz.html#add",
+    "href": "data_viz.html#add",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.3 Add",
+    "text": "9.3 Add\n\ndf_lifetime |&gt; ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)"
+  },
+  {
+    "objectID": "data_viz.html#add-condition",
+    "href": "data_viz.html#add-condition",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.4 Add condition",
+    "text": "9.4 Add condition\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"First fixataion times at the verb region\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)\n\n\n\n\n\nThe colour here is STACKED!! i.e., not layered. Notice the distribution doesn’t change from all grey to coloured"
+  },
+  {
+    "objectID": "data_viz.html#customisation",
+    "href": "data_viz.html#customisation",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.5 Customisation",
+    "text": "9.5 Customisation\n\nwe can add arguments to our geoms\n\ne.g., transparency: alpha = takes a value between 0 to 1\n\nwe can use theme() to customise font sizes, legend placement, etc.\ntehre are also popular preset themes, such as theme_bw() and theme_minimal()\n\n\ntheme_bw()theme_minimal()\n\n\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram(alpha=.5) +\n  theme_bw()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\n\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram(alpha=.5) +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)."
+  },
+  {
+    "objectID": "data_viz.html#density-plots",
+    "href": "data_viz.html#density-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.1 Density plots",
+    "text": "10.1 Density plots\n\nbelow I just replaced geom_histogram() with geom_density()\n\nI also filtered the data to include only values of ff above 0\n\nwhat is plotted along the y-axis? how does this differ from a histogram?\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_density() +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)."
+  },
+  {
+    "objectID": "data_viz.html#grouped-density-plots",
+    "href": "data_viz.html#grouped-density-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.2 Grouped density plots",
+    "text": "10.2 Grouped density plots\n\njust like with histograms, we can look at the density plots of different subsets of the data with aes(fill = )\n\nlike region\n\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff, fill = region)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_density(alpha=.5) +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\n10.2.1 facet_grid()\n\nthere are a lot of overlapping density curves, let’s try to separate them with facet_grid(x~y)\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff, fill = region)) + \n  facet_grid(.~region) +\n  labs(title = \"Density plot of first fixataion times by region\",\n       x = \"First fixation times (ms)\") +\n  geom_density(alpha=.5) +\n  theme_bw()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\nhow would you describe the density plots of the different regions?\n\n\n\n10.2.2 re-ordering factors\n\nby default, factors will be ordered alphabetically\n\nbut we don’t always want that\nhere, verb-1 should be before verb\n\n\n\ndf_lifetime &lt;- df_lifetime %&gt;%\n  mutate(region = factor(region, \n                         levels = c(\"verb-1\",\"verb\",\"verb+1\",\"verb+2\",\"verb+3\",\"verb+4\")))\n\nsummary(df_lifetime$region)\n\nverb-1   verb verb+1 verb+2 verb+3 verb+4 \n   559    559    559    559    559    182 \n\n\n\n10.2.2.1 Exercise\n\ncreate a density plot with the fill colour set to condition, but:\n\n\nsubset the data to only include the verb region\nyou can decide if you want to use facets or to have the density curves overlayed\nyour plot should look something like A or B:\n\n\n\n\n\n\n\n\n10.2.2.2 Extra exercise\n\nCan you produce these plots?"
+  },
+  {
+    "objectID": "data_viz.html#scatterplots",
+    "href": "data_viz.html#scatterplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.3 Scatterplots",
+    "text": "10.3 Scatterplots\n\nhistograms and density plots plot a single variable along the x-axis\n\nin most other plots the dependent (measure) variable is plotted along the y-axis by convention\n\nscatterplots plot the relationship between two variables\n\n\niris |&gt; \n  ggplot(aes(x=Sepal.Length, y=Sepal.Width)) +\n  geom_point() +\n  labs(title = \"A scatterplot\",\n       x = \"variable X\",\n       y = \"variable Y\")\n\n\n\n\n\n10.3.1 Scatterplots\n\nthe figure below plots total reading times (verb region) to the verb region (x-axis) and reaction times to the critical sentence (y-axis)\n\nwhat does each point represent?\nhow would you describe the relationship between the two variables?\n\n\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tt, y = rt)) +\n  labs(title = \"Scatter plot of total reading times (verb region)\nand reaction times (critical sentence)\",\n       x = \"Total reading time (ms)\",\n       y = \"Reaction time (ms)\") +\n  geom_point(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n10.3.1.1 Exercise\n\nGenerate a scatterplot of total reading times and reaction times, with:\n\ncolour and shape set to condition\ntip: these both belong in aes()\n\nWhat information does this plot suggest?"
+  },
+  {
+    "objectID": "data_viz.html#boxplots",
+    "href": "data_viz.html#boxplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.1 Boxplots",
+    "text": "11.1 Boxplots\n\nboxplots provide information about the distribution of a continuous variable\n\nbut includes information like median (dark line) and quartiles (box and whiskers)\nand outliers (dots)\n\nlike scatterplots, require x and y variables\n\nbut one of them needs to be categorical\n\n\n\niris |&gt; \n  ggplot(aes(x = Species, y = Sepal.Length)) +\n  labs(title = \"A scatterplot\",\n       x = \"Categorical variable\",\n       y = \"Continuous variable\") +\n  geom_boxplot()\n\n\n\n\nA scatterplot. Median (50th percentile): thick black lines; interquartile range (IQR; 25th and 75th percentile): box limits; minimum (0th percentile) and maximum (100th percentile) excluding outliers: : whiskers; outliers: points"
+  },
+  {
+    "objectID": "data_viz.html#boxplot-explained",
+    "href": "data_viz.html#boxplot-explained",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.2 Boxplot explained",
+    "text": "11.2 Boxplot explained\n\n\n\n\n\nImage source: (winter_statistics_2019?) (all rights reserved)"
+  },
+  {
+    "objectID": "data_viz.html#boxplots-1",
+    "href": "data_viz.html#boxplots-1",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.3 Boxplots",
+    "text": "11.3 Boxplots\n\nlet’s change our scatterplot to a boxplot\n\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tense, y = ff)) +\n  labs(title = \"First-fixation duration (verb region)\",\n       x = \"Tense\",\n       y = \"First-fixation duration (ms)\") +\n  geom_boxplot(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n11.3.1 Grouped boxplots\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tense, y = ff, colour = lifetime)) +\n  labs(title = \"First-fixation duration (verb region)\",\n       x = \"Tense\",\n       y = \"First-fixation duration (ms)\") +\n  geom_boxplot(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n11.3.1.1 Exercise\n\nCreate a group boxplot (x = tense, fill = lifetime) for\n\n\nfirst-pass reading time (verb region)\nregression path duration (verb region)\ntotal reading time (verb region)\nreaction times (use the distinct() verb to have a single observation per participant and per trial)"
+  },
+  {
+    "objectID": "data_viz.html#violin-plots",
+    "href": "data_viz.html#violin-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.4 Violin plots",
+    "text": "11.4 Violin plots"
+  },
+  {
+    "objectID": "data_viz.html#violin-boxplots",
+    "href": "data_viz.html#violin-boxplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.5 Violin boxplots",
+    "text": "11.5 Violin boxplots"
+  },
+  {
+    "objectID": "data_viz.html#interaction-plots",
+    "href": "data_viz.html#interaction-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "12.1 Interaction plots",
+    "text": "12.1 Interaction plots\n\n\n\ncommon for factorial designs, i.e., comparing categorical predictors\nthere are 2 ways of producing them:\n\nwith your data frame and stat_summary()\nor with a summary table and ggplot geoms geom_point(), geom_errorbar(), and geom_line()\n\nwe’ll need our summary table to plot an interaction plot\n\n\n\n\n\n\n\ncondition\nlifetime\ntense\nN\nmean.ff\nsd\nse\nci\nlower.ci\nupper.ci\n\n\n\n\ndeadPP\ndead\nPP\n140\n198.9\n57.9\n4.9\n9.7\n189.2\n208.6\n\n\ndeadSF\ndead\nSF\n139\n194.6\n67.9\n5.8\n11.4\n183.2\n205.9\n\n\nlivingPP\nliving\nPP\n140\n194.2\n77.3\n6.5\n12.9\n181.3\n207.1\n\n\nlivingSF\nliving\nSF\n140\n186.0\n57.6\n4.9\n9.6\n176.4\n195.6"
+  },
+  {
+    "objectID": "data_viz.html#bar-plot",
+    "href": "data_viz.html#bar-plot",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.1 Bar plot",
+    "text": "13.1 Bar plot\n\n\nbe sure to read in accept as a factor!\n\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept) )) +\n  geom_bar() +\n  theme_bw()\n\n\n\n\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept), fill = condition)) +\n  labs(title = \"Binary responses\",\n       x = \"Naturalness response\",\n       fill = \"Condition\") +\n  geom_bar() +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#grouped-bar-plots",
+    "href": "data_viz.html#grouped-bar-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.2 Grouped bar plots",
+    "text": "13.2 Grouped bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept), fill = condition)) +\n  labs(title = \"Binary responses\",\n       x = \"Naturalness response\",\n       fill = \"Condition\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()\n\n\n\n\n\n13.2.1 Exercise\n\nGenerate a grouped bar plot (i.e., dodge) with:\n\na facet grid for tense\nplots lifetime on the x-axis\nand fills the bars based on accept\nchange the labels accordingly\ncustomise as you like\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Binary responses\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#grouped-bar-plots-1",
+    "href": "data_viz.html#grouped-bar-plots-1",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.3 Grouped bar plots",
+    "text": "13.3 Grouped bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Grouped and faceted barplot\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#stacked-bar-plots",
+    "href": "data_viz.html#stacked-bar-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.4 Stacked bar plots",
+    "text": "13.4 Stacked bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Stacked and faceted barplot\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"stack\") +\n  theme_bw()\n\n\n\n\n\n13.4.1 Exercise\n\nChoose the barplot you like best for binary data\nReproduce that barplot, but with reg_in at the verb1 region\n\n\n\n\n\n\n\n\n13.4.2 Extra exercise\n\nCreate another bar plot, but for reg_out for all sentence regions\nUse facet_grid()\n\n\nto have facets by region (columns) and by tense (in 2 rows)"
   }
 ]
