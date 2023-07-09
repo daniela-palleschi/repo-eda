@@ -1,450 +1,499 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "",
+    "objectID": "assumptions.html",
+    "href": "assumptions.html",
+    "title": "8  Model assumptions",
     "section": "",
-    "text": "Code"
+    "text": "Learning objectives\nToday we will learn…\nSections 6.3, 6.4 and 7.9 in (winter_statistics_2019?)\n# suppress scientific notation\noptions(scipen=999)\n\\[\n\\begin{align}\nobserved\\;values &= fitted\\;values + residuals\\\\\nresiduals &= observed\\;values - fitted\\;values\n\\end{align}\n\\]\ndf_crit_verb |&gt; \n  filter(fp &gt; 0) |&gt; \n  mutate(half = if_else(trial &gt;= 104, \"1st\",\"2nd\")) |&gt; \n  ggpubr::ggqqplot(x = \"fp\")\npacman::p_load(car)\nvif(fit_fp)\n\n      lifetime          tense lifetime:tense \n      1.000169       1.000169       1.000007\nperformance::check_model(fit_fp_log)\n\n\n\n\nFigure 15.1: Performance of model with log reading times\nperformance::check_model(fit_fp)\n\n\n\n\nFigure 15.2: Performance of model with log reading times\ntidy(fit_fp_log) %&gt;% \n  kable(digits = 10,\n        col.names = c(\"Coefficient\",\n                      \"Estimate (log)\",\n                      \"SE\",\n                      \"t-value\",\n                      \"p-value\")) %&gt;% \n  kable_styling()\n\n\n\n\nCoefficient\nEstimate (log)\nSE\nt-value\np-value\n\n\n\n\n(Intercept)\n5.63476711\n0.01877047\n300.1931843\n0.000000000\n\n\nlifetime1\n0.10130415\n0.03754094\n2.6984981\n0.007183743\n\n\ntense1\n-0.03357132\n0.03754094\n-0.8942589\n0.371582493\n\n\nlifetime1:tense1\n-0.08320391\n0.07508188\n-1.1081757\n0.268280198"
   },
   {
-    "objectID": "index.html#course-description",
-    "href": "index.html#course-description",
-    "title": "",
-    "section": "1.1 Course description",
-    "text": "1.1 Course description\n\ndevelop skills and know-how\n\ncreate reproducible reports & presentations of eye-tracking reading data\ncommon measures in eye-tracking reading\nimportance of reproducible workflow\ncommunicate findings\n\nhands-on exercises in RStudio with the R programming language\n\ndata wrangling (tidyverse)\ndata visualisation (ggplot2),\ndescriptive and inferential statistics (lme4 and lmerTest)"
+    "objectID": "assumptions.html#packages",
+    "href": "assumptions.html#packages",
+    "title": "8  Model assumptions",
+    "section": "Packages",
+    "text": "Packages\n\npacman::p_load(tidyverse,\n               broom,\n               patchwork,\n               sjPlot,\n               knitr,\n               kableExtra,\n               Rmisc)"
   },
   {
-    "objectID": "index.html#course-credits",
-    "href": "index.html#course-credits",
-    "title": "",
-    "section": "1.2 Course credits",
-    "text": "1.2 Course credits\n\n4 LP\n\nattendance and participation: 1LP\nIn-class exercises and preparation: 1LP\nAssignments: 2 LP\n\nReproducible (pilot) analysis report + Pre-registration\nReproducible analysis report"
+    "objectID": "assumptions.html#data",
+    "href": "assumptions.html#data",
+    "title": "8  Model assumptions",
+    "section": "Data",
+    "text": "Data\n\nforce character variables to factors\nfilter for the verb region from critical items only, remove participant 3, and remove values of first-fixtation that are\n\n\n# load in dataset\ndf_crit_verb &lt;-\n  readr::read_csv(\n    here::here(\"data/tidy_data_lifetime_pilot.csv\"),\n    # for special characters\n    locale = readr::locale(encoding = \"latin1\")\n  ) |&gt;\n  mutate_if(is.character, as.factor) |&gt; # all character variables as factor\n  mutate(lifetime = fct_relevel(lifetime, \"living\", \"dead\"),\n         tense = fct_relevel(tense, \"PP\", \"SF\")) |&gt;\n  filter(type == \"critical\", # only critical trials\n         px != \"px3\", # px3 had a lot of missing values\n         fp &gt; 0, # only values of fp above 0\n         region == \"verb\") %&gt;% # critical region only\n  droplevels() # remove any factor levels with no observations"
   },
   {
-    "objectID": "index.html#further-readings",
-    "href": "index.html#further-readings",
-    "title": "",
-    "section": "2.1 Further readings",
-    "text": "2.1 Further readings\n\nthere are lots of useful resources out there, specifically:\n\nBodo Winter’s tutorials on linear (mixed) models (winter_linear_2013?; winter_very_2014?)\nthe PsyTeachR website is a great resource for hands-on stats and/or data analysis in R from the University of Glasgow School of Psychology and Neuroscience"
+    "objectID": "assumptions.html#our-model",
+    "href": "assumptions.html#our-model",
+    "title": "8  Model assumptions",
+    "section": "9.1 Our model",
+    "text": "9.1 Our model\n\n9.1.1 Check contrasts\n\ncontrasts(df_crit_verb$lifetime)\n\n       dead\nliving    0\ndead      1\n\n\n\ncontrasts(df_crit_verb$tense)\n\n   SF\nPP  0\nSF  1\n\n\n\n\n9.1.2 Re-order predictor levels\n\n# set contrasts\ndf_crit_verb &lt;- df_crit_verb %&gt;% \n  mutate(lifetime = fct_relevel(lifetime, \"living\", \"dead\"),\n         tense = fct_relevel(tense, \"PP\", \"SF\"))\n\n\n\n9.1.3 Set sum coding\nSet contrasts\n\ncontrasts(df_crit_verb$lifetime) &lt;- c(-0.5, +0.5)\ncontrasts(df_crit_verb$tense) &lt;- c(-0.5, +0.5)\n\nCheck contrasts\n\ncontrasts(df_crit_verb$lifetime)\n\n       [,1]\nliving -0.5\ndead    0.5\n\n\n\ncontrasts(df_crit_verb$tense)\n\n   [,1]\nPP -0.5\nSF  0.5\n\n\n\n\n9.1.4 Run model\n\n# fit linear model\nfit_fp &lt;- df_crit_verb %&gt;%\n  lm(fp ~ lifetime*tense, data = .)\n\n\n\n9.1.5 Print summary\n\nsummary(fit_fp)\n\n\nCall:\nlm(formula = fp ~ lifetime * tense, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-240.62 -108.69  -27.62   56.20  778.65 \n\nCoefficients:\n                 Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)        309.06       6.26  49.367 &lt;0.0000000000000002 ***\nlifetime1           31.52      12.52   2.517              0.0121 *  \ntense1             -12.75      12.52  -1.018              0.3090    \nlifetime1:tense1   -21.69      25.04  -0.866              0.3868    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 145.9 on 539 degrees of freedom\nMultiple R-squared:  0.01499,   Adjusted R-squared:  0.009506 \nF-statistic: 2.734 on 3 and 539 DF,  p-value: 0.04306"
   },
   {
-    "objectID": "_reproducibility.html",
-    "href": "_reproducibility.html",
-    "title": "2  Reproducible Analyses",
+    "objectID": "assumptions.html#checking-assumptions",
+    "href": "assumptions.html#checking-assumptions",
+    "title": "8  Model assumptions",
+    "section": "10.1 Checking assumptions",
+    "text": "10.1 Checking assumptions\n\nwe typically assess normality and homoscedasticity visually with histograms, Q-Q plots, and residual plots\nwe can assess collinearity with VIFs\nthe assumption of independence is dealt with conceptually\n\n\n\n\n\n\nImage source: (winter_statistics_2019?) (all rights reserved)"
+  },
+  {
+    "objectID": "assumptions.html#normality-assumption-1",
+    "href": "assumptions.html#normality-assumption-1",
+    "title": "8  Model assumptions",
+    "section": "Normality assumption",
+    "text": "Normality assumption\n\nhow about by participant and experimental half?\n\n\ndf_crit_verb |&gt; \n  filter(fp &gt; 0) |&gt; \n  mutate(half = if_else(trial &gt;= 104, \"1st\",\"2nd\")) |&gt; \n  ggpubr::ggqqplot(x = \"fp\",\n                    color = \"half\",\n                    facet.by = \"px\")"
+  },
+  {
+    "objectID": "assumptions.html#normality-assumption-2",
+    "href": "assumptions.html#normality-assumption-2",
+    "title": "8  Model assumptions",
+    "section": "Normality assumption",
+    "text": "Normality assumption\n\nnormal distribution is symmetrical, are our residuals normally distributed?\n\n\n\n\n\n\nFigure 12.1: Visualising normality of residuals"
+  },
+  {
+    "objectID": "assumptions.html#normality-assumption-3",
+    "href": "assumptions.html#normality-assumption-3",
+    "title": "8  Model assumptions",
+    "section": "Normality assumption",
+    "text": "Normality assumption\n\nreading time data tends to be positively skewed\n\nso the residuals also tend to be positively skewed\n\ndata with a skewed distribution do not meet the normality assumption\na fix: nonlinear transformations\n\nthe most common: the log transformation\n\nlog-transforming your data makes larger numbers smaller (and small numbers smaller too)\n\nthe difference between smaller numbers and larger numbers shrinks\ncan make skewed data normally distributed\n\n\n\n12.0.1 Log transformation\n\nfor more see Section 5.4 in (winter_statistics_2019?)\nthe R funtion log() computes the ‘natural logarithm’ (and is the inverse of the exponential exp())\nlog() makes large numbers smaller\nexp() makes small numbers larger\n\n\nlog(2)\n\n[1] 0.6931472\n\n\n\nlog(1:10)\n\n [1] 0.0000000 0.6931472 1.0986123 1.3862944 1.6094379 1.7917595 1.9459101\n [8] 2.0794415 2.1972246 2.3025851\n\n\n\nlog(c(10,20,30,40,100))\n\n[1] 2.302585 2.995732 3.401197 3.688879 4.605170\n\n\n\nexp(1:10)\n\n [1]     2.718282     7.389056    20.085537    54.598150   148.413159\n [6]   403.428793  1096.633158  2980.957987  8103.083928 22026.465795\n\n\n\nexp(log(1:10))\n\n [1]  1  2  3  4  5  6  7  8  9 10"
+  },
+  {
+    "objectID": "assumptions.html#fit-model-log-transformed",
+    "href": "assumptions.html#fit-model-log-transformed",
+    "title": "8  Model assumptions",
+    "section": "12.1 Fit model (log-transformed)",
+    "text": "12.1 Fit model (log-transformed)\n\ncontinuous variables truncated at 0 typically have a positive skew\n\na lot of small values (e.g., tt &lt; 500ms), with some larger values (&gt; tt 1000)\nthis usually means our residuals are also positively skewed, i.e., not normally distributed\n\nso we typically log-transform raw reading/reaction times for our linear models\n\n\n# fit simple linear model with log\nfit_fp_log &lt;- df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;% # important! you can't log transform 0\n  lm(log(fp) ~ lifetime*tense, data = .)\nsummary(fit_fp_log)\n\n\nCall:\nlm(formula = log(fp) ~ lifetime * tense, data = .)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-1.18141 -0.34282  0.00058  0.26923  1.38822 \n\nCoefficients:\n                 Estimate Std. Error t value             Pr(&gt;|t|)    \n(Intercept)       5.63477    0.01877 300.193 &lt; 0.0000000000000002 ***\nlifetime1         0.10130    0.03754   2.698              0.00718 ** \ntense1           -0.03357    0.03754  -0.894              0.37158    \nlifetime1:tense1 -0.08320    0.07508  -1.108              0.26828    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.4374 on 539 degrees of freedom\nMultiple R-squared:  0.01712,   Adjusted R-squared:  0.01165 \nF-statistic: 3.129 on 3 and 539 DF,  p-value: 0.02538\n\n\n\n12.1.1 Check assumptions\n\n\nRaw first-pass reading times\n\nplot(density(resid(fit_fp)))\n\n\n\n\n\nLog first-pass reading times\n\nplot(density(resid(fit_fp_log)))\n\n\n\n\n\n\n\n\nCheck assumptions\n\n\nRaw first-pass reading times\n\nqqnorm(residuals(fit_fp))\nqqline(residuals(fit_fp), col=\"red\")\n\n\n\n\n\nLog first-pass reading times\n\nqqnorm(residuals(fit_fp_log))\nqqline(residuals(fit_fp_log), col=\"red\")\n\n\n\n\n\n\n\n\nCheck assumptions: constant variance\n\n\nRaw first-pass reading times\n\nfit_fp %&gt;% \nggplot(aes(x = .fitted, y = .resid)) +\n  labs(title = \"Residual plot (fp ~ lifetime*tense)\") +\n  geom_point() +\n  geom_hline(yintercept = 0) +\n  theme_bw()  # Add theme for cleaner look\n\n\n\n\n\nLog first-pass reading times\n\nfit_fp_log %&gt;% \nggplot(aes(x = .fitted, y = .resid)) +\n  labs(title = \"Residual plot (log(fp) ~ lifetime*tense)\") +\n  geom_point() +\n  geom_hline(yintercept = 0) +\n  theme_bw()  # Add theme for cleaner look\n\n\n\n\n\n\n\n\n12.1.2 Approaching normality: log\n\nso it seems like the log-transformed values have made the data more normal"
+  },
+  {
+    "objectID": "assumptions.html#interpreting-log",
+    "href": "assumptions.html#interpreting-log",
+    "title": "8  Model assumptions",
+    "section": "12.2 Interpreting log",
+    "text": "12.2 Interpreting log\n\naugment(fit_fp_log, data = df_crit_verb[df_crit_verb$fp &gt; 0,]) %&gt;% \n  distinct(lifetime,tense,.fitted) %&gt;% \n  arrange(lifetime) \n\n# A tibble: 4 × 3\n  lifetime tense .fitted\n  &lt;fct&gt;    &lt;fct&gt;   &lt;dbl&gt;\n1 living   PP       5.58\n2 living   SF       5.59\n3 dead     PP       5.72\n4 dead     SF       5.65\n\n\n\ndf_crit_verb %&gt;% \n  mutate(predicted_raw = predict(fit_fp),\n         predicted_log = predict(fit_fp_log)) %&gt;% \n  distinct(lifetime,tense,predicted_raw, predicted_log) %&gt;% \n  arrange(lifetime) \n\n# A tibble: 4 × 4\n  lifetime tense predicted_raw predicted_log\n  &lt;fct&gt;    &lt;fct&gt;         &lt;dbl&gt;         &lt;dbl&gt;\n1 living   PP             294.          5.58\n2 living   SF             292.          5.59\n3 dead     PP             337.          5.72\n4 dead     SF             313.          5.65\n\n\n\n\nexp(coef(fit_fp_log)['(Intercept)'])\n\n(Intercept) \n   279.9937 \n\ncoef(fit_fp)['(Intercept)']\n\n(Intercept) \n   309.0606 \n\n\n\nthe exponential (back-transformation) of the log slopes correspond to the change in percentage\n\n\n(exp(coef(fit_fp_log)['lifetime1'])-1)*100\n\nlifetime1 \n 10.66132 \n\n\n\n(exp(coef(fit_fp_log)['tense1'])-1)*100\n\n   tense1 \n-3.301406 \n\n\n\n# living-SF\ncoef(fit_fp)['(Intercept)'] + (coef(fit_fp)['lifetime1'] * -0.5)\n\n(Intercept) \n    293.302 \n\nexp(coef(fit_fp_log)['(Intercept)']) * (exp(coef(fit_fp_log)['lifetime1']* -0.5))\n\n(Intercept) \n   266.1646 \n\nexp(coef(fit_fp_log)['(Intercept)']) * (exp(coef(fit_fp_log)['lifetime1']* +0.5))\n\n(Intercept) \n   294.5413 \n\n\n\n# living-SF\nexp(coef(fit_fp_log)['(Intercept)']) * exp(coef(fit_fp_log)['lifetime1'] * -0.5 + coef(fit_fp_log)['tense1'] * -0.5 )\n\n(Intercept) \n   270.6701 \n\n\n\n# dead-PP\nexp(coef(fit_fp_log)['(Intercept)']) * exp(coef(fit_fp_log)['lifetime1'] * +0.5 + coef(fit_fp_log)['tense1'] * -0.5 )\n\n(Intercept) \n   299.5271 \n\n\n\n# dead-SF\ncoef(fit_fp_log)['(Intercept)'] + coef(fit_fp_log)['lifetime1'] * 0.5 + coef(fit_fp_log)['tense1'] * 0.5 \n\n(Intercept) \n   5.668634"
+  },
+  {
+    "objectID": "assumptions.html#what-is-independence-of-data",
+    "href": "assumptions.html#what-is-independence-of-data",
+    "title": "8  Model assumptions",
+    "section": "14.1 What is (in)dependence of data?",
+    "text": "14.1 What is (in)dependence of data?\n\ne.g., each roll of a die is independent\n\nthat is, if you roll a 6, this has no bearing on what you will roll next\nif you roll a die 10 times and I roll a die 10 times, the values we get will not be linked to who rolled the die\n\nreading times are dependent\n\nif we collect eye-tracking reading times from two people, the data points from each person will be dependent\n\nthis is because each person will have their own reading pace, so their data points will tend to cluster\n\nalso true for experimental item\n\nsome items will likely elicit a stronger effect than others"
+  },
+  {
+    "objectID": "assumptions.html#check-independence",
+    "href": "assumptions.html#check-independence",
+    "title": "8  Model assumptions",
+    "section": "14.2 Check independence",
+    "text": "14.2 Check independence\n\nindependence is a conceptual consideration, it can’t be checked visually or numerically\nit is a question of experimental design\na way to think about it: can my data be linked/clustered/grouped by some means?\n\ne.g., yes, by participant, by item, even by verb\n\nthere of course are many ways our data might cluster, contributing random error that would not be expected to be repeated\n\nwe have specific predictions for the effects of lifetime or tense, and would expect them to replicate if we were to re-run the study\nbut we cannot predict how certain participants will pattern, nor how certain items will pattern\nthese are random variables, essentially error that we can try to explain by means of telling the model “check for effects by participant and item”"
+  },
+  {
+    "objectID": "assumptions.html#accounting-for-independence",
+    "href": "assumptions.html#accounting-for-independence",
+    "title": "8  Model assumptions",
+    "section": "14.3 Accounting for independence",
+    "text": "14.3 Accounting for independence\n\nthere is a very powerful tool that allows us to include dependence in our models: linear mixed models (LMMs)\nLMMs are mixed because they include fixed effects (lifetime, tense), and random effects (in eye-tracking experiments, typically participant, item)\n\nalso called linear mixed effects models (LMEMs), or multilevel models (or hierarchical models in some cases)"
+  },
+  {
+    "objectID": "assumptions.html#p-value-formatting",
+    "href": "assumptions.html#p-value-formatting",
+    "title": "8  Model assumptions",
+    "section": "16.1 P-value formatting",
+    "text": "16.1 P-value formatting\n\nyou can create a function the replaces p-values\n\n\n# source: https://stackoverflow.com/questions/37470202/in-line-code-for-reporting-p-values-001-in-r-markdown\n# OR USE\npacman::p_load(broman) \nformat_pval &lt;- function(x){\n  if (x &lt; .001) return(paste('&lt;', '.001'))\n  if (x &lt; .01) return(paste('&lt;', '.01'))\n  if (x &lt; .05) return(paste('&lt;', '.05'))\n  paste('=', myround(x, 3))  # if above .05, print p-value to 3 decimalp points\n}\n\n\nmake_stars &lt;- function(pval) {\n  stars = \"\"\n  if(pval &lt;= 0.001)\n    stars = \"***\"\n  if(pval &gt; 0.001 & pval &lt;= 0.01)\n    stars = \"**\"\n  if(pval &gt; 0.01 & pval &lt;= 0.05)\n    stars = \"*\"\n  if(pval &gt; 0.05 & pval &lt;= 0.1)\n     stars = \".\"\n  stars\n}"
+  },
+  {
+    "objectID": "assumptions.html#formatted-table",
+    "href": "assumptions.html#formatted-table",
+    "title": "8  Model assumptions",
+    "section": "16.2 Formatted table",
+    "text": "16.2 Formatted table\n\ntidy(fit_fp_log) %&gt;% \n  mutate(format = sapply(p.value, function(x) format_pval(x))) %&gt;% \n  mutate(signif = sapply(p.value, function(x) make_stars(x))) %&gt;%\n  select(-p.value) %&gt;% \n  kable(digits = 10,\n        col.names = c(\"Coefficient\",\n                      \"Estimate (log)\",\n                      \"SE\",\n                      \"t-value\",\n                      \"p-value\",\n                      \"sign\")) %&gt;% \n  kable_styling()\n\n\n\n\nCoefficient\nEstimate (log)\nSE\nt-value\np-value\nsign\n\n\n\n\n(Intercept)\n5.63476711\n0.01877047\n300.1931843\n&lt; .001\n***\n\n\nlifetime1\n0.10130415\n0.03754094\n2.6984981\n&lt; .01\n**\n\n\ntense1\n-0.03357132\n0.03754094\n-0.8942589\n= 0.372\n\n\n\nlifetime1:tense1\n-0.08320391\n0.07508188\n-1.1081757\n= 0.268"
+  },
+  {
+    "objectID": "assumptions.html#plots",
+    "href": "assumptions.html#plots",
+    "title": "8  Model assumptions",
+    "section": "16.3 Plots",
+    "text": "16.3 Plots\n\ndf_crit_verb |&gt; \n  filter(fp &gt; 0) |&gt; \n  mutate(log_ff = log(fp)) |&gt; \n  mutate(half = if_else(trial &gt;= 104, \"1st\",\"2nd\")) |&gt; \n  ggpubr::ggqqplot(x = \"log_ff\")\n\n\n\n\n\n16.3.1 sjPlot\n\n\n\n\n\nFigure 16.1: ?(caption)\n\n\n\n\n\n\n16.3.2 Distributions\n\n\n\n\n\nFigure 16.2: ?(caption)\n\n\n\n\n\n\n16.3.3 Errorbar\n\nfig_error &lt;-\n  df_crit_verb %&gt;% \n  filter(fp &gt; 0) %&gt;% \n  summarySEwithin(measurevar=\"fp\", withinvars=c(\"lifetime\", \"tense\"), idvar=\"px\") %&gt;% \n  mutate(upper = fp+ci,\n         lower = fp-ci) %&gt;% \n  ggplot(aes(x = lifetime, y = fp, colour = tense, shape = tense)) + \n  labs(title = \"Mean first-pass reading times (with 95% CIs)\") +\n  geom_point(position = position_dodge(0.2), size = 2) +\n  geom_line(position = position_dodge(0.2), aes(group=tense)) +\n  geom_errorbar(aes(ymin=lower,ymax=upper), position = position_dodge(0.2), width = .2) +\n  theme_bw() +\n  theme(text = element_text(size=8))\n\nfig_error_log &lt;-\n  df_crit_verb %&gt;% \n  filter(fp &gt; 0) %&gt;% \n  mutate(fp_log = log(fp)) %&gt;% \n  summarySEwithin(measurevar=\"fp_log\", withinvars=c(\"lifetime\", \"tense\"), idvar=\"px\") %&gt;% \n  mutate(upper = fp_log+ci,\n         lower = fp_log-ci) %&gt;% \n  ggplot(aes(x = lifetime, y = fp_log, colour = tense, shape = tense)) + \n  labs(title = \"Mean first-pass reading times (with 95% CIs)\") +\n  geom_point(position = position_dodge(0.2), size = 2) +\n  geom_line(position = position_dodge(0.2), aes(group=tense)) +\n  geom_errorbar(aes(ymin=lower,ymax=upper), position = position_dodge(0.2), width = .2) +\n  theme_bw() +\n  theme(text = element_text(size=8))\n\n\n\n\n\n\nFigure 16.3: ?(caption)"
+  },
+  {
+    "objectID": "data_viz.html",
+    "href": "data_viz.html",
+    "title": "5  Data Visualisation with ggplot2",
     "section": "",
-    "text": "References"
+    "text": "6 Data communication\niris |&gt; \n  ggplot(aes(x=Sepal.Length)) +\n  geom_histogram() +\n  labs(title = \"A histogram\",\n       x = \"variable\")\niris |&gt; \n  ggplot(aes(x=Sepal.Length)) +\n  geom_density() +\n  labs(title = \"A density plot\",\n       x = \"variable\")\nNordmann et al. (2022)\nNordmann & DeBruine (2022)\nWickham et al. (n.d.), Chapter 2"
   },
   {
-    "objectID": "_reproducibility.html#replication",
-    "href": "_reproducibility.html#replication",
-    "title": "2  Reproducible Analyses",
-    "section": "2.1 Replication",
-    "text": "2.1 Replication\n\n“There is increasing concern that in modern research, false findings may be the majority or even the vast majority of published research claims”\n– Ioannidis (2005)\n\n\nreplication refers to re-running a previous experiment with as few differences as possible\n\naim: determine whether the original results were robust and are replicable\nif yes, great! the original findings are reliable\nif no, hmm, maybe the original findings were false positives? or due to some other factor?\n\nin recent years, researchers have tried to replicate classic studies in their field\n\nbut in many cases, they did not get the same effects the original study reported (and were famous for)\n\nthis began the replication crisis\n\n\n2.1.1 An example from language research\n\nNieuwland et al. (2018): a direct EEG1 replication (versus conceptual replication)\n\n\n\na multi-lab replication of DeLong et al. (2005)’s impactful paper\n\nDeLong et al. (2005): reported N400 effects elicted at unexpected nouns, but also on preceding determiners (English a/an) when it signalled an unexpected word,\n\ne.g., The day was breezy so the boy went outside to fly…a kite/*an airplane\ntaken as evidence of pre-activation of phonological form, graded by cloze probability\n\nNieuwland et al. (2018): replicated N400 at noun, but not at adjective\n\ni.e., failure to replicate a famous finding"
+    "objectID": "data_viz.html#load-packages-and-data",
+    "href": "data_viz.html#load-packages-and-data",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "6.1 Load packages and data",
+    "text": "6.1 Load packages and data\n\n# load tidyverse\nlibrary(tidyverse)\n\n# load data\ndf_lifetime &lt;- readr::read_csv(here::here(\"data/tidy_data_lifetime_pilot.csv\"), \n                               # for special characters\n                               locale = readr::locale(encoding = \"latin1\") \n                               ) |&gt;\n  mutate_if(is.character,as.factor) |&gt; # all character variables as factor\n  filter(type == \"critical\", # only critical trials\n         px != \"px3\") # this participant had lots of 0's for some reason"
   },
   {
-    "objectID": "_reproducibility.html#reproducibility",
-    "href": "_reproducibility.html#reproducibility",
-    "title": "2  Reproducible Analyses",
-    "section": "2.2 Reproducibility",
-    "text": "2.2 Reproducibility\n\nreproducibility refers to the ability to reproduce somebody’s analyses with their\n\ndata\nand code\n\nit is not something we do once, nor is it something that will get us published\n\nbut it’s important for open science and encourages transparency\n\n\n\n2.2.1 Replication vs. Reproducibility\n\nreplication of a study\n\nrepeating an experiment\ngetting similar results\n\nreproducibility of analyses\n\nrepeating analyses of the same data\ngetting the same results\n\ne.g., when you submit a paper to a journal, they make ask for your data and code so reviewers can reproduce your analyses\n\nrequires data and code\n\nif you have interesting findings, other researchers (or future you) may want to replicate your study to see if they can replicate your findings\n\n(may require) stimuli, set-up and presentation information, participant demographics"
+    "objectID": "data_viz.html#tables",
+    "href": "data_viz.html#tables",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "6.2 Tables",
+    "text": "6.2 Tables\n\nwe can create summaries of our data\n\n\n\nCode\n# compute summary \nsummary_ff &lt;- df_lifetime |&gt; \n  filter(region==\"verb\") |&gt; \n  group_by(condition,lifetime,tense) %&gt;%\n  summarise(N = n(),\n            mean.ff = mean(ff, na.rm = T),\n            sd = sd(ff, na.rm = T)) %&gt;%\n  # compute standard error, confidence intervals, and lower/upper ci bounds\n  mutate(se = sd / sqrt(N),\n         ci = qt(1 - (0.05 / 2), N - 1) * se,\n         lower.ci = mean.ff - qt(1 - (0.05 / 2), N - 1) * se,\n         upper.ci = mean.ff + qt(1 - (0.05 / 2), N - 1) * se)\n\n\n\nand print the output with the kable() function from the knitr package\n\nfor extra customisation you can also use the kableExtra package (e.g., with the kable_styling() function)\n\n\n\n# install.packages(\"knitr\") # if not yet installed\nknitr::kable(summary_ff, digits=1,\n             caption = \"Table with summmary statistics for first-fixation duration at the verb region\")\n\n\nTable with summmary statistics for first-fixation duration at the verb region\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ncondition\nlifetime\ntense\nN\nmean.ff\nsd\nse\nci\nlower.ci\nupper.ci\n\n\n\n\ndeadPP\ndead\nPP\n140\n198.9\n57.9\n4.9\n9.7\n189.2\n208.6\n\n\ndeadSF\ndead\nSF\n139\n194.6\n67.9\n5.8\n11.4\n183.2\n205.9\n\n\nlivingPP\nliving\nPP\n140\n194.2\n77.3\n6.5\n12.9\n181.3\n207.1\n\n\nlivingSF\nliving\nSF\n140\n186.0\n57.6\n4.9\n9.6\n176.4\n195.6\n\n\n\n\n\n\n6.2.1 Exercise\n\ninstall the knitr package (install.packages(\"knitr\"))\ncreate an object with some summary statistics of the variable rt\n\n\ncall it summary_rt\n\n\nuse kable() from knitr to print a table\n\n\nknitr::kable(summary_rt, digits=1,\n             caption = \"Summary of reaction times (ms) per condition\")\n\n\nSummary of reaction times (ms) per condition\n\n\nlifetime\ntense\ncondition\nN\nmean.rt\nsd\n\n\n\n\ndead\nPP\ndeadPP\n140\n3530.5\n2915.8\n\n\ndead\nSF\ndeadSF\n139\n1747.0\n1153.4\n\n\nliving\nPP\nlivingPP\n140\n2257.7\n1346.3\n\n\nliving\nSF\nlivingSF\n140\n2578.1\n1958.7"
   },
   {
-    "objectID": "_reproducibility.html#open-science-why-should-i-care",
-    "href": "_reproducibility.html#open-science-why-should-i-care",
-    "title": "2  Reproducible Analyses",
-    "section": "2.3 Open Science: Why should I care?",
-    "text": "2.3 Open Science: Why should I care?\n\nScience is cumulative\n\nWe should ensure we’re building on reliable, robust findings\ni.e., it’s good scientific practice\n\nBecause the field cares\n\nreplication/reproducibility are beginning to be foregrounded by e.g., journals/job advertisements\n\nHelps future you\n\npre-registration, reproducible analyses, clean and shareable data: all help future you\n\n\n\n2.3.1 What can I do?\n\nthere’s a variety of open science practices that we can choose to implement\nsome suggestions from Kathawalla et al. (2021):\n\n\n\nLevel: Easy\n\nJournal Club\nProject workflow\nPre-prints\n\n\nLevel: Medium\n\nReproducible code\nSharing data\nTransparent manuscripts\nPre-registration\n\n\nLevel: Difficult\n\nRegistered reports\n\n\n\n\n\n2.3.2 How to do better science\n\ndon’t be afraid of making mistakes\n\n(most) researchers aren’t statisticians or programmers\ndo the best you can, and be transparent\n\ndoing some of the steps is better than doing none\n\n\n\n2.3.3 What will we learn here?\n\n\nDesign and Reporting\n\n\nPreregistration/Registered Reports\nTransparent writing\n\n\nAnalysis\n\n\nReproducible code\n\nwith open source software (R, RStudio, packages)\ndynamic reports with Quarto/Rmarkdown\n\nProject workflow\n\nfolder structure\n\nhow to sensibly set up your folders\n\ncontained environments\n\nusing RProjects and the here package\n\n\n\n\n\n\n\n\n\n\nImage source: Kathawalla et al. (2021) (all rights reserved)"
+    "objectID": "data_viz.html#start-layering",
+    "href": "data_viz.html#start-layering",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.1 Start layering",
+    "text": "9.1 Start layering\n\ndf_lifetime |&gt; ggplot(aes(ff)) # aes = 'aesthetic'"
   },
   {
-    "objectID": "_reproducibility.html#r-is-for-reproducibility",
-    "href": "_reproducibility.html#r-is-for-reproducibility",
-    "title": "2  Reproducible Analyses",
-    "section": "2.4 R is for Reproducibility",
-    "text": "2.4 R is for Reproducibility\n\nwe will be working with R, RStudio, Quarto, and RProjects\n\nR: a programming language for statistical computing and graphics\nRStudio: an integrated development environment (IDE)\n\nRStudio Desktop\nRStudio Server\n\nQuarto (similar to Rmarkdown): dynamic reports\n\ncombining text, code, and printed tables and figures\n\nRProjects: a workflow tool\n\ncontains all files necessary for a project\nworks with relative file paths"
+    "objectID": "data_viz.html#add-labels",
+    "href": "data_viz.html#add-labels",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.2 Add labels",
+    "text": "9.2 Add labels\n\ndf_lifetime |&gt; ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixation times\",\n       x = \"First fixation times (ms)\")"
   },
   {
-    "objectID": "_reproducibility.html#exercises",
-    "href": "_reproducibility.html#exercises",
-    "title": "2  Reproducible Analyses",
-    "section": "2.5 Exercises",
-    "text": "2.5 Exercises\n\n2.5.1 RStudio\n\nOpen RStudio\n\nlocate the Environment, Files, and Console panes\nFile &gt; New File &gt; R script\nwrite [your birth-month number]*[the your birth day] and hit Enter\nwrite print(\"Hello World!\")\nwrite number &lt;- 3*32; this will create an object/variable ‘number’\nwrite string &lt;- \"Hello World!\"; this will create an object/variable ‘string’\nwrite number\nwrite string\nadd comments describing each step using #\nFile &gt; Save As"
+    "objectID": "data_viz.html#add",
+    "href": "data_viz.html#add",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.3 Add",
+    "text": "9.3 Add\n\ndf_lifetime |&gt; ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)"
   },
   {
-    "objectID": "_reproducibility.html#section",
-    "href": "_reproducibility.html#section",
-    "title": "2  Reproducible Analyses",
+    "objectID": "data_viz.html#add-condition",
+    "href": "data_viz.html#add-condition",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.4 Add condition",
+    "text": "9.4 Add condition\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"First fixataion times at the verb region\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)\n\n\n\n\n\nThe colour here is STACKED!! i.e., not layered. Notice the distribution doesn’t change from all grey to coloured"
+  },
+  {
+    "objectID": "data_viz.html#customisation",
+    "href": "data_viz.html#customisation",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "9.5 Customisation",
+    "text": "9.5 Customisation\n\nwe can add arguments to our geoms\n\ne.g., transparency: alpha = takes a value between 0 to 1\n\nwe can use theme() to customise font sizes, legend placement, etc.\ntehre are also popular preset themes, such as theme_bw() and theme_minimal()\n\n\ntheme_bw()theme_minimal()\n\n\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram(alpha=.5) +\n  theme_bw()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\n\n\ndf_lifetime |&gt; ggplot(aes(ff, fill = condition)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_histogram(alpha=.5) +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)."
+  },
+  {
+    "objectID": "data_viz.html#density-plots",
+    "href": "data_viz.html#density-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.1 Density plots",
+    "text": "10.1 Density plots\n\nbelow I just replaced geom_histogram() with geom_density()\n\nI also filtered the data to include only values of ff above 0\n\nwhat is plotted along the y-axis? how does this differ from a histogram?\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_density() +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds)."
+  },
+  {
+    "objectID": "data_viz.html#grouped-density-plots",
+    "href": "data_viz.html#grouped-density-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.2 Grouped density plots",
+    "text": "10.2 Grouped density plots\n\njust like with histograms, we can look at the density plots of different subsets of the data with aes(fill = )\n\nlike region\n\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff, fill = region)) + \n  labs(title = \"Histogram of first fixataion times\",\n       x = \"First fixation times (ms)\") +\n  geom_density(alpha=.5) +\n  theme_minimal()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\n10.2.1 facet_grid()\n\nthere are a lot of overlapping density curves, let’s try to separate them with facet_grid(x~y)\n\n\ndf_lifetime |&gt; \n  filter(ff &gt; 0) |&gt; \n  ggplot(aes(ff, fill = region)) + \n  facet_grid(.~region) +\n  labs(title = \"Density plot of first fixataion times by region\",\n       x = \"First fixation times (ms)\") +\n  geom_density(alpha=.5) +\n  theme_bw()\n\n\n\n\nDistribution of first fixation times at the verb region (raw milliseconds).\n\n\n\n\n\nhow would you describe the density plots of the different regions?\n\n\n\n10.2.2 re-ordering factors\n\nby default, factors will be ordered alphabetically\n\nbut we don’t always want that\nhere, verb-1 should be before verb\n\n\n\ndf_lifetime &lt;- df_lifetime %&gt;%\n  mutate(region = factor(region, \n                         levels = c(\"verb-1\",\"verb\",\"verb+1\",\"verb+2\",\"verb+3\",\"verb+4\")))\n\nsummary(df_lifetime$region)\n\nverb-1   verb verb+1 verb+2 verb+3 verb+4 \n   559    559    559    559    559    182 \n\n\n\n10.2.2.1 Exercise\n\ncreate a density plot with the fill colour set to condition, but:\n\n\nsubset the data to only include the verb region\nyou can decide if you want to use facets or to have the density curves overlayed\nyour plot should look something like A or B:\n\n\n\n\n\n\n\n\n10.2.2.2 Extra exercise\n\nCan you produce these plots?"
+  },
+  {
+    "objectID": "data_viz.html#scatterplots",
+    "href": "data_viz.html#scatterplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "10.3 Scatterplots",
+    "text": "10.3 Scatterplots\n\nhistograms and density plots plot a single variable along the x-axis\n\nin most other plots the dependent (measure) variable is plotted along the y-axis by convention\n\nscatterplots plot the relationship between two variables\n\n\niris |&gt; \n  ggplot(aes(x=Sepal.Length, y=Sepal.Width)) +\n  geom_point() +\n  labs(title = \"A scatterplot\",\n       x = \"variable X\",\n       y = \"variable Y\")\n\n\n\n\n\n10.3.1 Scatterplots\n\nthe figure below plots total reading times (verb region) to the verb region (x-axis) and reaction times to the critical sentence (y-axis)\n\nwhat does each point represent?\nhow would you describe the relationship between the two variables?\n\n\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tt, y = rt)) +\n  labs(title = \"Scatter plot of total reading times (verb region)\nand reaction times (critical sentence)\",\n       x = \"Total reading time (ms)\",\n       y = \"Reaction time (ms)\") +\n  geom_point(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n10.3.1.1 Exercise\n\nGenerate a scatterplot of total reading times and reaction times, with:\n\ncolour and shape set to condition\ntip: these both belong in aes()\n\nWhat information does this plot suggest?"
+  },
+  {
+    "objectID": "data_viz.html#boxplots",
+    "href": "data_viz.html#boxplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.1 Boxplots",
+    "text": "11.1 Boxplots\n\nboxplots provide information about the distribution of a continuous variable\n\nbut includes information like median (dark line) and quartiles (box and whiskers)\nand outliers (dots)\n\nlike scatterplots, require x and y variables\n\nbut one of them needs to be categorical\n\n\n\niris |&gt; \n  ggplot(aes(x = Species, y = Sepal.Length)) +\n  labs(title = \"A scatterplot\",\n       x = \"Categorical variable\",\n       y = \"Continuous variable\") +\n  geom_boxplot()\n\n\n\n\nA scatterplot. Median (50th percentile): thick black lines; interquartile range (IQR; 25th and 75th percentile): box limits; minimum (0th percentile) and maximum (100th percentile) excluding outliers: : whiskers; outliers: points"
+  },
+  {
+    "objectID": "data_viz.html#boxplot-explained",
+    "href": "data_viz.html#boxplot-explained",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.2 Boxplot explained",
+    "text": "11.2 Boxplot explained\n\n\n\n\n\nImage source: (winter_statistics_2019?) (all rights reserved)"
+  },
+  {
+    "objectID": "data_viz.html#boxplots-1",
+    "href": "data_viz.html#boxplots-1",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.3 Boxplots",
+    "text": "11.3 Boxplots\n\nlet’s change our scatterplot to a boxplot\n\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tense, y = ff)) +\n  labs(title = \"First-fixation duration (verb region)\",\n       x = \"Tense\",\n       y = \"First-fixation duration (ms)\") +\n  geom_boxplot(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n11.3.1 Grouped boxplots\n\ndf_lifetime |&gt;\n  filter(ff &gt; 0,\n         region == \"verb\") |&gt;\n  ggplot(aes(x = tense, y = ff, colour = lifetime)) +\n  labs(title = \"First-fixation duration (verb region)\",\n       x = \"Tense\",\n       y = \"First-fixation duration (ms)\") +\n  geom_boxplot(alpha = .2) +\n  theme_bw()\n\n\n\n\n\n11.3.1.1 Exercise\n\nCreate a group boxplot (x = tense, fill = lifetime) for\n\n\nfirst-pass reading time (verb region)\nregression path duration (verb region)\ntotal reading time (verb region)\nreaction times (use the distinct() verb to have a single observation per participant and per trial)"
+  },
+  {
+    "objectID": "data_viz.html#violin-plots",
+    "href": "data_viz.html#violin-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.4 Violin plots",
+    "text": "11.4 Violin plots"
+  },
+  {
+    "objectID": "data_viz.html#violin-boxplots",
+    "href": "data_viz.html#violin-boxplots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "11.5 Violin boxplots",
+    "text": "11.5 Violin boxplots"
+  },
+  {
+    "objectID": "data_viz.html#interaction-plots",
+    "href": "data_viz.html#interaction-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "12.1 Interaction plots",
+    "text": "12.1 Interaction plots\n\n\n\ncommon for factorial designs, i.e., comparing categorical predictors\nthere are 2 ways of producing them:\n\nwith your data frame and stat_summary()\nor with a summary table and ggplot geoms geom_point(), geom_errorbar(), and geom_line()\n\nwe’ll need our summary table to plot an interaction plot\n\n\n\n\n\n\n\ncondition\nlifetime\ntense\nN\nmean.ff\nsd\nse\nci\nlower.ci\nupper.ci\n\n\n\n\ndeadPP\ndead\nPP\n140\n198.9\n57.9\n4.9\n9.7\n189.2\n208.6\n\n\ndeadSF\ndead\nSF\n139\n194.6\n67.9\n5.8\n11.4\n183.2\n205.9\n\n\nlivingPP\nliving\nPP\n140\n194.2\n77.3\n6.5\n12.9\n181.3\n207.1\n\n\nlivingSF\nliving\nSF\n140\n186.0\n57.6\n4.9\n9.6\n176.4\n195.6"
+  },
+  {
+    "objectID": "data_viz.html#bar-plot",
+    "href": "data_viz.html#bar-plot",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.1 Bar plot",
+    "text": "13.1 Bar plot\n\n\nbe sure to read in accept as a factor!\n\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept) )) +\n  geom_bar() +\n  theme_bw()\n\n\n\n\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept), fill = condition)) +\n  labs(title = \"Binary responses\",\n       x = \"Naturalness response\",\n       fill = \"Condition\") +\n  geom_bar() +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#grouped-bar-plots",
+    "href": "data_viz.html#grouped-bar-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.2 Grouped bar plots",
+    "text": "13.2 Grouped bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = as.factor(accept), fill = condition)) +\n  labs(title = \"Binary responses\",\n       x = \"Naturalness response\",\n       fill = \"Condition\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()\n\n\n\n\n\n13.2.1 Exercise\n\nGenerate a grouped bar plot (i.e., dodge) with:\n\na facet grid for tense\nplots lifetime on the x-axis\nand fills the bars based on accept\nchange the labels accordingly\ncustomise as you like\n\n\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Binary responses\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#grouped-bar-plots-1",
+    "href": "data_viz.html#grouped-bar-plots-1",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.3 Grouped bar plots",
+    "text": "13.3 Grouped bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Grouped and faceted barplot\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"dodge\") +\n  theme_bw()"
+  },
+  {
+    "objectID": "data_viz.html#stacked-bar-plots",
+    "href": "data_viz.html#stacked-bar-plots",
+    "title": "5  Data Visualisation with ggplot2",
+    "section": "13.4 Stacked bar plots",
+    "text": "13.4 Stacked bar plots\n\ndf_lifetime |&gt; \n  distinct(px,trial,.keep_all=T) |&gt; \n  ggplot(aes(x = lifetime, fill = as.factor(accept))) +\n  facet_grid(.~tense) +\n  labs(title = \"Stacked and faceted barplot\",\n       x = \"Lifetime\",\n       fill = \"Response\") +\n  geom_bar(position = \"stack\") +\n  theme_bw()\n\n\n\n\n\n13.4.1 Exercise\n\nChoose the barplot you like best for binary data\nReproduce that barplot, but with reg_in at the verb1 region\n\n\n\n\n\n\n\n\n13.4.2 Extra exercise\n\nCreate another bar plot, but for reg_out for all sentence regions\nUse facet_grid()\n\n\nto have facets by region (columns) and by tense (in 2 rows)"
+  },
+  {
+    "objectID": "lin_reg1.html",
+    "href": "lin_reg1.html",
+    "title": "6  Linear Regression 1",
     "section": "",
-    "text": "# multiply 5 by 7\n5*7\n\n[1] 35\n\n\n\n# print some text\nprint(\"Hello World!\")\n\n[1] \"Hello World!\"\n\n\n\n# save an object 'number' with 5*7\nnumber &lt;- 5*7\n\n\n# save an object 'string' with text\nstring &lt;- \"Hello World!\"\n\n\n# print number\nnumber\n\n[1] 35\n\n\n\n# print string\nstring\n\n[1] \"Hello World!\"\n\n\n\n# do math with objects\nnumber+number\n\n[1] 70\n\n\n\nnumber*number\n\n[1] 1225\n\n\n\nnumber*2\n\n[1] 70\n\n\n\nmonth &lt;- 5\n\n\nday &lt;- 7\n\n\nmonth*day\n\n[1] 35\n\n\n\n2.5.2 Quarto2\n\nR scripts are a great way to keep track of what you did\n\nhowever, the output is not saved, and adding comments with # gets kind of chunky\nenter: dynamic reports!\n\ndynamic reports are those that combine text, code, and output\n\nthey are a great tool for communicating, collaborating, and documenting\nthey are also fantastic for note-taking\n\nRmarkdown vs. Quarto\n\nboth can combine text with code, outputting PDFs, Word Documents, html, or slides\nmain difference: Quarto has native support of a wider range of programming languages (e.g., Python and Julia)\n\nWant to know more? Check out Hadley Wickham’s intro (Wickham et al., n.d.)\n\n\n2.5.2.1 YAML\n\n---\ntitle: \"My title\"\nauthor: \"My name\"\nformat: html\n---\n\n\nYAML is a human-readable programming language used to configure documents\nformatting is important: but be sandwiched between --- and ---\nin Quarto the output type must at least be given (with R: pdf, html, revealjs)\n\n\n\n2.5.2.2 Headings and text\n\n# This is a heading\n\nThis is text.\n\n## This is a sub-heading\n\nThis is more text.\n\n\nheadings are indicated by #\n\nthe number of #’s indicates the heading level\n\n\n\n\n2.5.2.3 Code snippets\n# do some math\nyear &lt;- 1989\ndog &lt;- \"Lola\"\n\nsandwiched between markdown```{r} and `markdown\n\nshortcut: Ctrl/Cmd+Alt+I\n\n\n\n\n2.5.2.4 In-line code\n\nI was born on `r month`/`r day`/`r year`. My dog's name is `r dog`.\n\nI was born on 5/7/1989. My dog’s name is Lola.\n\ncode output that was run above text can be called in-line using `r `\n\n\n\n2.5.2.5 Altogether\n---\ntitle: \"My title\"\nauthor: \"My name\"\nformat: html\n---\n\n# This is a heading\n\nThis is text.\n\n## This is a sub-heading\n\nThis is more text.\n\nAdd some code chunks.\n\n```{r}\n# do some math\nyear &lt;- 1989\ndog &lt;- \"Lola\"\n```\n\nAnd use call objects for in-line code: I was born on `r month`/`r day`/`r year`. My dog's name is `r dog`.\n\n\n\n2.5.3 Quarto Exercises\n\n\n\nCreate a new Quarto document\n\nFile &gt; New File &gt; Quarto Document\nRead the instructions\nPractice running the chunks individually\nrender the document\nverify that you can modify the code, re-run it, and see modified output\n\n\n\n\nCreate one new Quarto document for each of the three built-in formats: HTML, PDF and Word.\n\nRender each of the three documents\nHow do the outputs differ?\nHow do the inputs differ?3\n\n\n\n\n\n\n2.5.4 Quarto cont’d\n\nChoose a Quarto document:\n\ngive it a title, your name (author), and unclick ‘Use visual markdown editor’\n\nRender\nYAML:\n\n\ntitle: \"Eye-tracking during reading\"\nsubtitle: \"Lecture 2 notes\"\nauthor: \"[YOUR NAME HERE]\"\nlang: en\ndate: `r Sys.Date()`\n\n\nRender\nyou can now try writing your class notes in this document (if you’re brave)"
+    "text": "Learning Objectives\nToday we will learn…\nMake sure you start with a clean R Environment (Session &gt; Restart R).\n(debruine_understanding_2021?); (winter_linear_2013?); (winter_very_2014?); (winter_statistics_2019?)\n\\[\nfp \\sim lifetime\n\\]\nCode\n# position_jitter\npj &lt;- position_jitter(0.2)\n\n# plot\ndf_crit_verb %&gt;% \n  filter(region==\"verb\") %&gt;% \n  ggplot(aes(x = lifetime, y = fp, colour = lifetime)) +\n  geom_point(position = pj) +\n  theme(legend.position = \"none\") +\n  theme_bw()\nImage source: (winter_statistics_2019?) (all rights reserved)\nNow it’s your turn. Try to run the following lm() models:\nCode\nsessionInfo()\n\n\nR version 4.3.0 (2023-04-21)\nPlatform: aarch64-apple-darwin20 (64-bit)\nRunning under: macOS Ventura 13.2.1\n\nMatrix products: default\nBLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib \nLAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0\n\nlocale:\n[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8\n\ntime zone: Europe/Berlin\ntzcode source: internal\n\nattached base packages:\n[1] stats     graphics  grDevices datasets  utils     methods   base     \n\nother attached packages:\n [1] magick_2.7.4     kableExtra_1.3.4 knitr_1.43       patchwork_1.1.2 \n [5] broom_1.0.5      lubridate_1.9.2  forcats_1.0.0    stringr_1.5.0   \n [9] dplyr_1.1.2      purrr_1.0.1      readr_2.1.4      tidyr_1.3.0     \n[13] tibble_3.2.1     ggplot2_3.4.2    tidyverse_2.0.0 \n\nloaded via a namespace (and not attached):\n [1] gtable_0.3.3      xfun_0.39         htmlwidgets_1.6.2 rstatix_0.7.2    \n [5] lattice_0.21-8    tzdb_0.4.0        vctrs_0.6.3       tools_4.3.0      \n [9] generics_0.1.3    parallel_4.3.0    fansi_1.0.4       highr_0.10       \n[13] pacman_0.5.1      pkgconfig_2.0.3   Matrix_1.5-4      webshot_0.5.5    \n[17] lifecycle_1.0.3   farver_2.1.1      compiler_4.3.0    munsell_0.5.0    \n[21] carData_3.0-5     htmltools_0.5.5   yaml_2.3.7        car_3.1-2        \n[25] ggpubr_0.6.0      pillar_1.9.0      crayon_1.5.2      abind_1.4-5      \n[29] nlme_3.1-162      tidyselect_1.2.0  rvest_1.0.3       digest_0.6.33    \n[33] stringi_1.7.12    splines_4.3.0     labeling_0.4.2    cowplot_1.1.1    \n[37] rprojroot_2.0.3   fastmap_1.1.1     grid_4.3.0        here_1.0.1       \n[41] colorspace_2.1-0  cli_3.6.1         magrittr_2.0.3    utf8_1.2.3       \n[45] withr_2.5.0       scales_1.2.1      backports_1.4.1   bit64_4.0.5      \n[49] timechange_0.2.0  rmarkdown_2.23    httr_1.4.6        bit_4.0.5        \n[53] ggsignif_0.6.4    hms_1.1.3         evaluate_0.21     viridisLite_0.4.2\n[57] mgcv_1.8-42       rlang_1.1.1       Rcpp_1.0.11       glue_1.6.2       \n[61] xml2_1.3.5        renv_0.17.3       svglite_2.1.1     rstudioapi_0.15.0\n[65] vroom_1.6.3       jsonlite_1.8.7    R6_2.5.1          systemfonts_1.0.4"
   },
   {
-    "objectID": "_reproducibility.html#footnotes",
-    "href": "_reproducibility.html#footnotes",
-    "title": "2  Reproducible Analyses",
+    "objectID": "lin_reg1.html#load-packages",
+    "href": "lin_reg1.html#load-packages",
+    "title": "6  Linear Regression 1",
+    "section": "Load packages",
+    "text": "Load packages\n\n# suppress scientific notation\noptions(scipen=999)\n\n\n# load libraries\npacman::p_load(tidyverse,\n               broom,\n               patchwork,\n               knitr,\n               kableExtra)"
+  },
+  {
+    "objectID": "lin_reg1.html#load-in-data",
+    "href": "lin_reg1.html#load-in-data",
+    "title": "6  Linear Regression 1",
+    "section": "Load in data",
+    "text": "Load in data\n\nforce character variables to factors\nfilter for the verb region from critical items only, remove participant 3, and remove values of first-fixtation that are 0\n\n\n# load in dataset\ndf_crit_verb &lt;-\n  readr::read_csv(\n    here::here(\"data/tidy_data_lifetime_pilot.csv\"),\n    # for special characters\n    locale = readr::locale(encoding = \"latin1\")\n  ) |&gt;\n  mutate_if(is.character, as.factor) |&gt; # all character variables as factor\n  # mutate(lifetime = fct_relevel(lifetime, \"living\", \"dead\"),\n  #        tense = fct_relevel(tense, \"PP\", \"SF\")) |&gt;\n  filter(type == \"critical\", # only critical trials\n         px != \"px3\", # px3 had a lot of missing values\n         fp &gt; 0, # only values of fp above 0\n         region == \"verb\") %&gt;% # critical region only\n  droplevels() # remove any factor levels with no observations"
+  },
+  {
+    "objectID": "lin_reg1.html#types-of-regression",
+    "href": "lin_reg1.html#types-of-regression",
+    "title": "6  Linear Regression 1",
+    "section": "8.1 Types of regression",
+    "text": "8.1 Types of regression\n\n\n\n\n\nregression type\npredictor\noutcome\n\n\n\n\nsimple regression\nSingle predictor\ncontinuous (numerical)\n\n\nmultiple regression\nmultiple predictor\ncontinuous (numerical)\n\n\nhierarchical/linear mixed models/linear mixed effect models\ninclude random effect\ncontinuous (numerical)\n\n\ngeneralised linear (mixed) models/logistic regression\nas above\nbinary/binomial data or count data"
+  },
+  {
+    "objectID": "lin_reg1.html#straight-lines",
+    "href": "lin_reg1.html#straight-lines",
+    "title": "6  Linear Regression 1",
+    "section": "8.2 Straight lines",
+    "text": "8.2 Straight lines\n\nlinear regression summarises the data with a straight line\n\nwe model our data as/fit our data to a straight line\n\nstraight lines can be defined by\n\nIntercept (\\(b_0\\))\n\nvalue of \\(Y\\) when \\(X = 0\\)\n\nSlope (\\(b_1\\))\n\ngradient (slope) of the regression line\ndirection/strength of relationship between \\(x\\) and \\(y\\)\nregression coefficient for the predictor\n\n\nso we need to define an intercept and a slope\n\n\n8.2.1 A line = intercept and slope\n\na line is defined by its intercept and slope\n\nin a regression model, these two are called coefficients\n\n\n\n\n\n\n\nImage source: (winter_statistics_2019?) (all rights reserved)\n\n\n\n\n\n\n8.2.2 Intercept (\\(b_0\\))\n\nthe value of \\(y\\) when \\(x = 0\\)\n\n\n\n\n\n\n\n\n8.2.3 Slopes (\\(b_1\\))\n\n\n\nslopes describe a change in \\(x\\) (\\(\\Delta x\\)) over a change in \\(y\\) (\\(\\Delta y\\))\n\npositive slope: as \\(x\\) increases, \\(y\\) increases\nnegative slope: as \\(x\\) increases, \\(y\\) decreases\nif the slope is 0, there is no change in \\(y\\) as a function of \\(x\\)\n\nor: the change in \\(y\\) when \\(x\\) increase by 1 unit\n\nsometimes referred to as “rise over run”: how do you ‘rise’ in \\(y\\) for a given ‘run’ in \\(x\\)?\n\n\n\n\\[\nslope = \\frac{\\Delta x}{\\Delta y}\n\\]\n\n\n\n\n\nwhat is the intercept of this line?\nwhat is the slope of this line?\n\n\n\n\n\n\n\n\n\n\n\n8.2.4 Error and residuals\n\nfixed effects (IV/predictors): things we can understand/measure\nerror (random effects): things we cannot understand/measure\n\nin biology, social sciences (and linguistic research), there will always sources of random error that we cannot account for\nrandom error is less an issue in e.g., physics (e.g., measuring gravitational pull)\n\nresiduals: the difference (vertical difference) between observed data and the fitted values (predicted values)\n\n\n\n\n\n\n\n\n\n\nEquation of a line\n\n\n\n\\[\n\\begin{align}\ny & = mx + c\\\\\nY_i &= (b_0 + b_1X_i) + \\epsilon_i\\\\\noutcome_i & = (model) + error_i\\\\\ny_i & = (intercept + slope*x_i) + error_i\n\\end{align}\n\\]"
+  },
+  {
+    "objectID": "lin_reg1.html#method-of-least-squares",
+    "href": "lin_reg1.html#method-of-least-squares",
+    "title": "6  Linear Regression 1",
+    "section": "8.3 Method of least squares",
+    "text": "8.3 Method of least squares\n\nso how is any given line chosen to fit any given data?\nthe method of least squares\n\ntake a given line, and square all the residuals (i.e., \\(residual^2\\))\nthe line with the lowest sum of squares is the line with the best fit to the given data\nwhy do we square the residuals before summing them up?\n\nso all values are positive (i.e., so that negative values don’t cancel out positive values)\n\n\nthis is how we find the line of best fit\n\nR fits many lines to find the one with the best fit\n\n\n\n\n\n\n\n\nFigure 8.1: Observed values (A), Residuals for line of best fit (B), A line of worse fit with larger residuals (C)"
+  },
+  {
+    "objectID": "lin_reg1.html#lm",
+    "href": "lin_reg1.html#lm",
+    "title": "6  Linear Regression 1",
+    "section": "9.1 lm()",
+    "text": "9.1 lm()\n\nthe lm() function fits simple linear models\n\nas arguments it takes a formula and a dataset, at minimum\n\n\n\\[\nlm(outcome \\sim 1 + predictor,\\;data\\;=\\;df\\_name)\n\\]\n\nlm() function formula syntax can be read as: fp predicted by the intercept (1 is a placeholder for the intercept)\n\nthe intercept is included by default\nif you omit the 1, the intercept is still included in the formula\nif you wanted to remove the intercept (which you often don’t), you could replace 1 with 0\n\n\n\n9.1.1 Running a model\n\nbefore we add our predictor lifetime, let’s see what our model looks like without it\n\n\nfit_fp_1 &lt;- lm(fp ~ 1, data = df_crit_verb) \n\n\n\n9.1.2 Model ouput\n\nprinting just the model gives us the formula and the coefficients\n\n\nfit_fp_1\n\n\nCall:\nlm(formula = fp ~ 1, data = df_crit_verb)\n\nCoefficients:\n(Intercept)  \n      309.2  \n\n\n\nrecall that the intercept and slope are called coefficients\n\nwhy do we only see Intercept?\n\n\n\n\nwe typically use the summary() function to print full model outputs\n\n\nsummary(fit_fp_1)\n\n\nCall:\nlm(formula = fp ~ 1, data = df_crit_verb)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-227.17 -106.17  -26.17   65.83  761.83 \n\nCoefficients:\n            Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)   309.17       6.29   49.15 &lt;0.0000000000000002 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 146.6 on 542 degrees of freedom\n\n\n\n\n\n\n\n\n\nbroom package\n\n\n\n\nthe broom package has some useful functions for printing model outputs\n\ntidy() produces a tibble (type of dataframe) of the coefficients\nglance() produces goodness of fit measures (which we won’t discuss)\n\nthe outputs from tidy() and glance() can be fed into kable and/or kable_styling() to create formatted tables\n\n\ntidy(fit_fp_1)\n\n# A tibble: 1 × 5\n  term        estimate std.error statistic   p.value\n  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)     309.      6.29      49.2 7.03e-202\n\n\n\nglance(fit_fp_1)\n\n# A tibble: 1 × 12\n  r.squared adj.r.squared sigma statistic p.value    df logLik   AIC   BIC\n      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1         0             0  147.        NA      NA    NA -3478. 6960. 6969.\n# ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;\n\n\n\naugment() adds model values as columns to your dataframe (e.g., useful for plotting observed vs. fitted values)\n\n\naugment(fit_fp_1, data = df_crit_verb) %&gt;% summary()\n\n\n\n\n\n9.1.3 Interpreting model output\n\nlet’s take a closer look at our model summary\n\n\nsummary(fit_fp_1)\n\n\nCall:\n1lm(formula = fp ~ 1, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n2-227.17 -106.17  -26.17   65.83  761.83\n\nCoefficients:\n3            Estimate Std. Error t value            Pr(&gt;|t|)\n4(Intercept)   309.17       6.29   49.15 &lt;0.0000000000000002 ***\n---\n5Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n6Residual standard error: 146.6 on 542 degrees of freedom\n\n\n1\n\nformula repetition\n\n2\n\nresiduals: differences between observed values and those predicted by the model\n\n3\n\nnames for columns Estimates, standard error, t-value, p-value (Pr(&gt;|t|))\n\n4\n\nIntercept (\\(b_0\\)), i.e., value of \\(y\\) (first-pass) with a move of one unit of \\(x\\) (lifetime)\n\n5\n\nSignificance codes\n\n6\n\nR\\(^2\\), a measure of model fit (squared residuals); percentage of variance in the data shared with the predictor (higher numbers are better…this is pretty low)\n\n\n\n\n\n\n9.1.4 Intercept\n\nour intercept is roughly 309.2 milliseconds; what does this number represent?\n\nthe intercept is essentially the mean\n\n\n\n# print model intercept?\ncoef(fit_fp_1)['(Intercept)']\n\n(Intercept) \n   309.1713 \n\n\n\n# print data mean\nmean(df_crit_verb$fp)\n\n[1] 309.1713\n\n\n\n9.1.4.1 Intercept significance\n\nin the output, the intercept seems to be significant (indicated with a low p-value, and ***)\n\nwhat does this mean?\n\nsignificance pretty much tells us if a number is equal to (or not statistically significantly different from) 0\n\nso this tells us that the intercept (i.e., the mean first-pass reading time at the verb region) is different from 0\nmost of the time, this isn’t interesting or even theoretically relevant\n\nthe larger your t-value, the smaller your p-value\n\n\n\n\n\n\n\n\nA word on t-values and p-values\n\n\n\nt-values quantify the difference between population means.\np-values quantify the probability of obtaining a result equal to or greater than what was observed, given the assumption of no effect (the null hypothesis).\nIf the null hypothesis were true, we would expect no effect (a flat line). If we have a lot of evidence/are confidence that there is an effect (the line (slope) is in fact not flat), then it would be unlikely that we would find such a result under the assumption that there is no effect (the line actually is flat) i.e., the null hypothesis. This is reflected in a small p-value.\n\n\n\n\n\n9.1.5 Plotting fp ~ 1\n\nFigure 9.1 shows the intercept (red dot) amongst the observed data (black dots)\n\nalong the x-axis we have abstract numerical units (the values don’t mean anything)\nwhat would the values of the intercept be?\n\n\n\n\n\n\n\nFigure 9.1: Visualisation of ‘fp ~ 1’: observed values (black) and mean (intercept; red). Residuals would be the distance from each black dot to the y-value of the read dot"
+  },
+  {
+    "objectID": "lin_reg1.html#adding-a-fixed-effect-slope",
+    "href": "lin_reg1.html#adding-a-fixed-effect-slope",
+    "title": "6  Linear Regression 1",
+    "section": "9.2 Adding a fixed effect (slope)",
+    "text": "9.2 Adding a fixed effect (slope)\n\nnow let’s include a slope\nthe slope represents the change in \\(y\\) (DV: fp) when we move 1-unit along \\(y\\) (IV: lifetime)\nin other words, it tells us the effect our IV has on the DV\n\nwhat is the change in first-pass reading times when we move from dead to living referents?\n\nlifetime is categorical, how can we move 1 unit?\n\na linear model requires \\(x\\) and \\(y\\) to be numerical, so it simply codes factor levels as 0 and 1 by default (in alphabetical order)\nso the slope represents the difference between categorical conditions"
+  },
+  {
+    "objectID": "lin_reg1.html#fit-model-treatment-contrasts",
+    "href": "lin_reg1.html#fit-model-treatment-contrasts",
+    "title": "6  Linear Regression 1",
+    "section": "9.3 Fit model (treatment contrasts)",
+    "text": "9.3 Fit model (treatment contrasts)\n\n# fit simple linear model\nfit_fp_lifetime_treat &lt;- df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;%\n  lm(fp ~ lifetime, data = .)\n\n\n# alternatively\nfit_fp_lifetime_treat &lt;- lm(fp ~ lifetime, \n            data = df_crit_verb, subset = fp &gt; 0)\n\n\n9.3.1 Model summary\n\nsummary(fit_fp_lifetime_treat)\n\n\nCall:\nlm(formula = fp ~ lifetime, data = df_crit_verb, subset = fp &gt; \n    0)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-228.99 -109.29  -26.99   58.86  777.71 \n\nCoefficients:\n               Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)     324.993      8.843  36.752 &lt;0.0000000000000002 ***\nlifetimeliving  -31.701     12.517  -2.533              0.0116 *  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 145.8 on 541 degrees of freedom\nMultiple R-squared:  0.01172,   Adjusted R-squared:  0.00989 \nF-statistic: 6.414 on 1 and 541 DF,  p-value: 0.0116\n\n\n\n\n9.3.2 Intercept\n\n# print model intercept?\ncoef(fit_fp_lifetime_treat)['(Intercept)']\n\n(Intercept) \n   324.9926 \n\n\n\n# print data mean\nmean(df_crit_verb$fp)\n\n[1] 309.1713\n\n\n\nour intercept is no longer the grand mean of first-pass reading times…what is it?\n\n\n\n9.3.3 Intercept for treatment contrasts\n\n\n\nwhat are the means of our two factor levels?\n\n\n# print model intercept?\ncoef(fit_fp_lifetime_treat)['(Intercept)']\n\n(Intercept) \n   324.9926 \n\n\n\n\n\nCode\n# compute summary \nsummary_ff_life &lt;- df_crit_verb |&gt; \n  filter(region==\"verb\",\n         fp &gt; 0) |&gt; \n  group_by(lifetime) %&gt;%\n  summarise(N = n(),\n            mean = mean(fp, na.rm = T),\n            sd = sd(fp, na.rm = T))\n\nknitr::kable(summary_ff_life, digits=3,\n             caption = \"Summmary statistics for first-pass reading times at the verb region\") %&gt;% \n  kableExtra::kable_styling(font_size = 30,\n                            position = \"left\")\n\n\n\nSummmary statistics for first-pass reading times at the verb region\n\n\nlifetime\nN\nmean\nsd\n\n\n\n\ndead\n272\n324.993\n151.005\n\n\nliving\n271\n293.292\n140.468\n\n\n\n\n\n\n\n\n\n\n\n9.3.4 Slope\n\n\n\nwhat was our slope?\nwhat does this correspond to?\n\n\n# print model intercept?\ncoef(fit_fp_lifetime_treat)['lifetimeliving']\n\nlifetimeliving \n     -31.70113 \n\n\n\n\n\nCode\n# compute summary \nsummary_ff_life &lt;- df_crit_verb |&gt; \n  filter(region==\"verb\",\n         fp &gt; 0) |&gt; \n  group_by(lifetime) %&gt;%\n  summarise(N = n(),\n            mean = mean(fp, na.rm = T),\n            sd = sd(fp, na.rm = T))\n\nknitr::kable(summary_ff_life, digits=3,\n             caption = \"Summmary statistics for first-pass reading time at the verb region\") %&gt;% \n  kableExtra::kable_styling(font_size = 30,\n                            position = \"left\")\n\n\n\nSummmary statistics for first-pass reading time at the verb region\n\n\nlifetime\nN\nmean\nsd\n\n\n\n\ndead\n272\n324.993\n151.005\n\n\nliving\n271\n293.292\n140.468\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nwhat was our slope?\nwhat does this correspond to?\n\n\n\n\n\n\n\nliving\ndead\ndiff\n\n\n\n\n293.2915\n324.9926\n-31.70113\n\n\n\n\n\n\n\n\n\n\nCode\n# compute summary \nsummary_ff_life &lt;- df_crit_verb |&gt; \n  filter(region==\"verb\",\n         fp &gt; 0) |&gt; \n  group_by(lifetime) %&gt;%\n  summarise(N = n(),\n            mean = mean(fp, na.rm = T),\n            sd = sd(fp, na.rm = T))\n\nknitr::kable(summary_ff_life, digits=3,\n             caption = \"Summmary statistics for first-pass reading time at the verb region\") %&gt;% \n  kableExtra::kable_styling(font_size = 30,\n                            position = \"left\")\n\n\n\nSummmary statistics for first-pass reading time at the verb region\n\n\nlifetime\nN\nmean\nsd\n\n\n\n\ndead\n272\n324.993\n151.005\n\n\nliving\n271\n293.292\n140.468"
+  },
+  {
+    "objectID": "lin_reg1.html#ordering-our-contrasts",
+    "href": "lin_reg1.html#ordering-our-contrasts",
+    "title": "6  Linear Regression 1",
+    "section": "10.1 Ordering our contrasts",
+    "text": "10.1 Ordering our contrasts\n\nbut recall that we expected to find longer reading times for the dead condition\nso the living condition is conceptually a baseline, to which we are comparing a violation condition\nit typically makes sense to order your factors in an order that makes the slope easy to interpret\n\nwe would like a positive slope to indicate longer reading times for our violation condition\nso we should have living coded as 0, rather than dead\n\nlet’s order our predictor\n\nwe predict longer reading times for dead versus living, so order living-dead\n\n\n\n# order factor levels\ndf_crit_verb$lifetime &lt;- factor(df_crit_verb$lifetime, levels = c(\"living\",\"dead\"))\n\n\nnow what will our contrasts be?\n\n\ncontrasts(df_crit_verb$lifetime)\n\n       dead\nliving    0\ndead      1"
+  },
+  {
+    "objectID": "lin_reg1.html#changing-our-contrasts-sum-coding",
+    "href": "lin_reg1.html#changing-our-contrasts-sum-coding",
+    "title": "6  Linear Regression 1",
+    "section": "10.2 Changing our contrasts: sum coding",
+    "text": "10.2 Changing our contrasts: sum coding\n\nnow that we know the order of our contrasts, we can also centre our predictor\n\nwe do this because it sometimes makes more sense for the intercept to represent the grand mean rather than the mean of one condition (this is especially true when interpreting interactions)\nto do this, we want 0 to be between our two factor levels\ne.g., change the contrasts to -0.5 and +0.5\nfor categorical variables, this is called sum coding\n\n\n\n# set contrasts\ncontrasts(df_crit_verb$lifetime) &lt;- c(-0.5,+0.5)\n\n\n# print contrasts\ncontrasts(df_crit_verb$lifetime)\n\n       [,1]\nliving -0.5\ndead    0.5\n\n\n\n\n\n\n\n\n\nCentring continuous predictors\n\n\n\nN.B., you would usually also centre numeric predictors. This is done by subtracting some constant from every value (usually by subtracting the mean of the predictor from each value and saving this as a new variable:\n\ndf_example %&gt;% \n  mutate(predictor_c &lt;- predictor-mean(predictor)\n\nIf you have interval data with a specific upper and lower bound, you could alternatively subtract the median value."
+  },
+  {
+    "objectID": "lin_reg1.html#fit-model-sum-contrasts",
+    "href": "lin_reg1.html#fit-model-sum-contrasts",
+    "title": "6  Linear Regression 1",
+    "section": "10.3 Fit model (sum contrasts)",
+    "text": "10.3 Fit model (sum contrasts)\n\nnow let’s fit our model with sum contrasts\n\nthe syntax is exactly the same (as long as you didn’t create a new variable to store the sum coding, as some people do)\n\n\n\n# fit simple linear model\nfit_fp_lifetime_sum &lt;- df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;%\n  lm(fp ~ lifetime, data = .)\n\n\n10.3.1 Coefficients table with summary()\n\n\n&gt; summary(fit_fp_lifetime_sum)\n\nCall:\n1lm(formula = fp ~ lifetime, data = df_crit_verb, subset = fp &gt; 0)\n\n2Residuals:\n    Min      1Q  Median      3Q     Max \n-228.99 -109.29  -26.99   58.86  777.71 \n\nCoefficients:\n3             Estimate Std. Error t value Pr(&gt;|t|)\n4(Intercept)  309.142      6.259  49.394 &lt;0.0000000000000002 ***\n5lifetime1     31.701     12.517   2.533              0.0116 *\n---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\nResidual standard error: 57.46 on 541 degrees of freedom\n6Multiple R-squared:  0.01172,   Adjusted R-squared:  0.00989\nF-statistic: 6.414 on 1 and 541 DF,  p-value: 0.0116\n\n\n1\n\nformula\n\n2\n\nResiduals: differences between observed values and those predicted by the model\n\n3\n\nNames for columns Estimates, SE, t-value, p-value\n\n4\n\nIntercept (\\(b_0\\)), i.e., value of \\(y\\) (first-pass) with a move of one unit of \\(x\\) (lifetime)\n\n5\n\nSlope (\\(b_1\\)), i.e., change in first fixation going from dead to living\n\n6\n\nOutput from an ANOVA\n\n\n\n\n\n\n\nwhat is the intercept?\nis the slope positive or negative?\n\nwhat is it’s value?\n\nthis is what the slope would look like:\n\n\n\n\n10.3.2 Understanding the summary\n\n\n\nlet’s compute summary statistics based on lifetime\n\nthen compare this to the model output\n\n\nExercises\n\nSubtract the mean first-pass reading time of dead from that of living\n\nwhat does this correspond to in the model summary?\n\nCompute the mean of dead+living\n\nwhat does this correspond to in the model summary?\n\nDivide the slope in 2. Subtract this from the mean of dead.\n\nwhat does this correspond to?\n\n\n\nSummary statistics\n\n\nCode\n# compute summary \nsummary_fp_life &lt;- df_crit_verb |&gt; \n  filter(region==\"verb\",\n         fp &gt; 0) |&gt; \n  group_by(lifetime) %&gt;%\n  summarise(N = n(),\n            mean = mean(fp, na.rm = T),\n            sd = sd(fp, na.rm = T)) %&gt;%\n  # compute standard error, confidence intervals, and lower/upper ci bounds\n  mutate(se = sd / sqrt(N),\n         ci = qt(1 - (0.05 / 2), N - 1) * se,\n         lower.ci = mean - qt(1 - (0.05 / 2), N - 1) * se,\n         upper.ci = mean + qt(1 - (0.05 / 2), N - 1) * se)\n\nknitr::kable(summary_ff_life, digits=3,\n             caption = \"Summmary statistics for first-pass reading time at the verb region\") %&gt;% \n  kableExtra::kable_styling(font_size = 24,\n                            position = \"left\")\n\n\n\nSummmary statistics for first-pass reading time at the verb region\n\n\nlifetime\nN\nmean\nsd\n\n\n\n\ndead\n272\n324.993\n151.005\n\n\nliving\n271\n293.292\n140.468\n\n\n\n\n\n\n\nModel summary\n\nsummary(fit_fp_lifetime_sum)\n\n\nCall:\nlm(formula = fp ~ lifetime, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-228.99 -109.29  -26.99   58.86  777.71 \n\nCoefficients:\n            Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)  309.142      6.259  49.394 &lt;0.0000000000000002 ***\nlifetime1     31.701     12.517   2.533              0.0116 *  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 145.8 on 541 degrees of freedom\nMultiple R-squared:  0.01172,   Adjusted R-squared:  0.00989 \nF-statistic: 6.414 on 1 and 541 DF,  p-value: 0.0116"
+  },
+  {
+    "objectID": "lin_reg1.html#comparing-contrasts",
+    "href": "lin_reg1.html#comparing-contrasts",
+    "title": "6  Linear Regression 1",
+    "section": "10.4 Comparing contrasts",
+    "text": "10.4 Comparing contrasts\n\nintercept = value of \\(y\\) when \\(x = 0\\)\ntreatment contrasts: factor levels are coded as 0 and 1\n\nintercept is mean of level that is coded as 0\n\nsum contrast coding: factor levels are coded as +/-0.5 (or 1)\n\nwhen \\(x = 0\\), this is the mid-way point between our two predictor levels\nso the intercept will be the grand mean of our two levels\n\nour slope is unchanged, however (unless we set our sum contrasts to +/- 1, which some people do)\n\n\n\n\n\n\n\nFigure 10.1: Comparison of contrast types"
+  },
+  {
+    "objectID": "lin_reg1.html#exploring-the-model",
+    "href": "lin_reg1.html#exploring-the-model",
+    "title": "6  Linear Regression 1",
+    "section": "Exploring the model",
+    "text": "Exploring the model\n\n# how many observed values did we enter into the model?\ndf_crit_verb |&gt; \n  filter(fp &gt; 0) |&gt; \n  nrow()\n\n[1] 543\n\n\n\n# how many observed values did we enter into the model?\nlength(fitted(fit_fp_lifetime_sum))\n\n[1] 543"
+  },
+  {
+    "objectID": "lin_reg1.html#exploring-the-model-residuals",
+    "href": "lin_reg1.html#exploring-the-model-residuals",
+    "title": "6  Linear Regression 1",
+    "section": "Exploring the model: residuals",
+    "text": "Exploring the model: residuals\n\n# what do our FITTED values look like?\nhead(fitted(fit_fp_lifetime_sum))\n\n       1        2        3        4        5        6 \n293.2915 293.2915 324.9926 293.2915 324.9926 293.2915 \n\n\n\n# what do our OBSERVED values look like?\nhead(df_crit_verb$fp)\n\n[1] 175 413 960 231 407 319\n\n\n\n# what is the difference between the FITTED and OBSERVED values?\nhead(df_crit_verb$fp) - head(fitted(fit_fp_lifetime_sum))\n\n         1          2          3          4          5          6 \n-118.29151  119.70849  635.00735  -62.29151   82.00735   25.70849 \n\n\n\n# what are our RESIDUALS?\nhead(residuals(fit_fp_lifetime_sum))\n\n         1          2          3          4          5          6 \n-118.29151  119.70849  635.00735  -62.29151   82.00735   25.70849"
+  },
+  {
+    "objectID": "lin_reg1.html#exploring-the-model-1",
+    "href": "lin_reg1.html#exploring-the-model-1",
+    "title": "6  Linear Regression 1",
+    "section": "Exploring the model",
+    "text": "Exploring the model\n\nwhat were our coefficients?\n\n\ncoef(fit_fp_lifetime_sum)\n\n(Intercept)   lifetime1 \n  309.14208    31.70113 \n\n\n\nwhat is the mean of our predictor coded as -0.5?\n\n\ncoef(fit_fp_lifetime_sum)['(Intercept)'] + coef(fit_fp_lifetime_sum)['lifetime1'] * -0.5\n\n(Intercept) \n   293.2915 \n\n\n\nignore the (Intercept) label here, R just takes the first label when performing an operation on 2 vectors\nwhat is the mean of our predictor coded as +0.5?\n\n\ncoef(fit_fp_lifetime_sum)['(Intercept)'] + coef(fit_fp_lifetime_sum)['lifetime1'] * 0.5\n\n(Intercept) \n   324.9926"
+  },
+  {
+    "objectID": "lin_reg1.html#important-terms",
+    "href": "lin_reg1.html#important-terms",
+    "title": "6  Linear Regression 1",
+    "section": "Important terms",
+    "text": "Important terms\n\n\n\n\n\nterm\ndescription/other terms\n\n\n\n\ndependent variable (DV)\noutcome, measure, y\n\n\nindependent variable (IV)\npredictor, fixed effect, y\n\n\nequation for a straight line\ny = intercept + slope*x\n\n\nsimple regression\npredicting outcome of a DV from a single IV\n\n\nslope\nchange in y (DV) associated with a 1-unit change in x (IV)\n\n\nintercept\nvalue of y (DV) when x (IV) = 0\n\n\nresiduals\ndifference between observed values and fitted/predicted values\n\n\nregression coefficients\nestimates of the unknown population parameters; intercept and slope\n\n\nleast squares\nthe method by which the line of best fit is determined; the line with the smallest sum of squared residuals"
+  },
+  {
+    "objectID": "mult_reg.html",
+    "href": "mult_reg.html",
+    "title": "7  Multiple Regression",
     "section": "",
-    "text": "electroencephalography↩︎\nhttps://r4ds.hadley.nz/quarto.html#workflow↩︎\nYou may need to install LaTeX in order to build the PDF output — RStudio will prompt you if this is necessary.↩︎"
+    "text": "Learning Objectives\nToday we will learn…\n# suppress scientific notation\noptions(scipen=999)\nChapters 6 and 7 in (winter_statistics_2019?)\n\\[\ny = b_0 + b_1x + b_2x + ... + e\n\\]\n\\[\nfp = b_0 + (b_1\\times lifetime) + (b_2\\times tense) + ... + e\n\\]\n\\[\ny = b_0 + b_1x_1 + b_2x_2 + b_3(x_1*x_2) + e\n\\]\n1.Run a model with main and interaction effects for tense and lifetime on total reading time at the verb region."
   },
   {
-    "objectID": "_et_reading.html",
-    "href": "_et_reading.html",
-    "title": "3  Eye-tracking during reading",
-    "section": "",
-    "text": "4 Eye-tracking"
+    "objectID": "mult_reg.html#packages",
+    "href": "mult_reg.html#packages",
+    "title": "7  Multiple Regression",
+    "section": "Packages",
+    "text": "Packages\nRun this in the Console:\n\ninstall.packages(\"devtools\")\ndevtools::install_github(\"strengejacke/sjPlot\")\n\nThen copy this into your script:\n\n# load libraries\npacman::p_load(\n  tidyverse,\n  here,\n  knitr,\n  kableExtra,\n  gt,\n  broom,\n  Rmisc,\n  patchwork,\n  sjPlot\n)"
   },
   {
-    "objectID": "_et_reading.html#eye-movements",
-    "href": "_et_reading.html#eye-movements",
-    "title": "3  Eye-tracking during reading",
-    "section": "4.1 Eye movements",
-    "text": "4.1 Eye movements\n\nsaccades: eye movements (e.g., from one word to another)\n\naverage saccade legnth: 7-9 letters (in alphabetic writing systems)\n\nfixations: ‘looking at’ something, e.g., a word (little movement)\n\nwhen information is taken in\naverage duration: 225-250ms (ranging 50-600ms)\n\nregressions: saccades to earlier text\n\noccurance: 10-15% of saccades in skilled readers\n\n\n\nRayner (2009)"
+    "objectID": "mult_reg.html#data",
+    "href": "mult_reg.html#data",
+    "title": "7  Multiple Regression",
+    "section": "Data",
+    "text": "Data\n\n# read in data\ndf_crit_verb &lt;- readr::read_csv(here::here(\"data/tidy_data_lifetime_pilot.csv\"), \n                               # for special characters\n                               locale = readr::locale(encoding = \"latin1\") \n                               ) |&gt; \n  mutate_if(is.character,as.factor) |&gt; # all character variables as factor\n  filter(type == \"critical\", # only critical trials\n         px != \"px3\",\n         region == \"verb\") |&gt;\n  droplevels()"
   },
   {
-    "objectID": "_et_reading.html#the-eye-tracker",
-    "href": "_et_reading.html#the-eye-tracker",
-    "title": "3  Eye-tracking during reading",
-    "section": "4.2 The eye-tracker",
-    "text": "4.2 The eye-tracker\n\n\n\neye-tracker\n\ncamera \\(+\\) infrared illuminator\n\nscreen\nchin/head rest\nin our lab: desk-mounted\n\n\n\n\n\n\n\nImage source: SR Research (all rights reserved)"
+    "objectID": "mult_reg.html#set-contrasts",
+    "href": "mult_reg.html#set-contrasts",
+    "title": "7  Multiple Regression",
+    "section": "8.1 Set contrasts",
+    "text": "8.1 Set contrasts\nLet’s stick to sum contrast coding (+/-0.5).\n\n# order factor levels\ndf_crit_verb$lifetime &lt;- factor(df_crit_verb$lifetime, levels = c(\"living\",\"dead\"))\n# or using the tidyverse\ndf_crit_verb &lt;-\n  df_crit_verb %&gt;% \n  mutate(lifetime = fct_relevel(lifetime, \"living\", \"dead\"))\n\n\n# set contrasts\ncontrasts(df_crit_verb$lifetime) &lt;- c(-0.5,+0.5)\n\n\ncontrasts(df_crit_verb$lifetime)\n\n       [,1]\nliving -0.5\ndead    0.5"
   },
   {
-    "objectID": "_et_reading.html#eye-tracking-reading-measures",
-    "href": "_et_reading.html#eye-tracking-reading-measures",
-    "title": "3  Eye-tracking during reading",
-    "section": "5.1 Eye-tracking reading measures",
-    "text": "5.1 Eye-tracking reading measures\n\ninform theories of language processing via linking hypotheses\n\nlinking visual attention to processing\n\ntypically, we compare reading times as a function of some manipulation\n\ne.g., Sally went/goed to the store.\n\nlonger reading times are taken to reflect processing costs, associated with e.g., sentence complexity or anomalies"
+    "objectID": "mult_reg.html#fit-model",
+    "href": "mult_reg.html#fit-model",
+    "title": "7  Multiple Regression",
+    "section": "8.2 Fit model",
+    "text": "8.2 Fit model\n\n# fit simple linear model\nfit_fp_lifetime &lt;- df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;%\n  lm(fp ~ lifetime, data = .)\n\n\n# check our contrasts\ncoef(fit_fp_lifetime)\n\n(Intercept)   lifetime1 \n  309.14208    31.70113"
   },
   {
-    "objectID": "_et_reading.html#region-of-interest-roi",
-    "href": "_et_reading.html#region-of-interest-roi",
-    "title": "3  Eye-tracking during reading",
-    "section": "5.2 Region of interest (ROI)",
-    "text": "5.2 Region of interest (ROI)\n\ncan be anything on-screen\n\nsentence-level\nword/region-level\na certain part of the screen\n\n\n\n\n\n\nVideo"
+    "objectID": "mult_reg.html#lifetime-effect",
+    "href": "mult_reg.html#lifetime-effect",
+    "title": "7  Multiple Regression",
+    "section": "8.3 Lifetime Effect",
+    "text": "8.3 Lifetime Effect\n\nrecall that we found a significant effect of lifetime\n\nthe dead conditions elicited longer first-pass reading times than the living conditions\n\nbut we also had two tenses: the Present Perfect (PP) and the Simple Future (SF)\n\nhow can we also check for an effect of tense?"
   },
   {
-    "objectID": "_et_reading.html#measures-dependent-variables",
-    "href": "_et_reading.html#measures-dependent-variables",
-    "title": "3  Eye-tracking during reading",
-    "section": "5.3 Measures (dependent variables)",
-    "text": "5.3 Measures (dependent variables)\n\nwhat we measure = dependent variables (usually…)\n\ntheir value depends on some predictor (e.g., word frequency)\n\n\n\n\n\nmeasures of duration (time spent on a region)\n\nfirst fixation\nfirst-pass reading time\nregression path duration\ntotal reading time\n\ndata type: continuous\n\n\n\nmeasures of revisits\n\nnumber of fixations\nnumber of regressions in/out\nregression in/out (yes or no)\nprobability of regressions in/out (0:1)\n\ndata type: binary (0,1) or count"
+    "objectID": "mult_reg.html#another-linear-model",
+    "href": "mult_reg.html#another-linear-model",
+    "title": "7  Multiple Regression",
+    "section": "8.4 Another linear model",
+    "text": "8.4 Another linear model\n\nwe could run a second model with tense as the predictor instead of lifetime\n\n\ndf_crit_verb &lt;-\n  df_crit_verb %&gt;% \n  mutate(tense = fct_relevel(tense, \"PP\", \"SF\"))\n\n\ncontrasts(df_crit_verb$tense) &lt;- c(-0.5,+0.5)\n\n\ncontrasts(df_crit_verb$tense)\n\n   [,1]\nPP -0.5\nSF  0.5\n\n\n\n# fit simple linear model\nfit_fp_tense &lt;-\n  df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;%\n  lm(fp ~ tense, data = .)\n\n\n\nwhat does the summary tell us?\n\n\nsummary(fit_fp_tense)\n\n\nCall:\nlm(formula = fp ~ tense, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-232.75 -109.66  -28.57   61.84  768.43 \n\nCoefficients:\n            Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)  309.159      6.289  49.156 &lt;0.0000000000000002 ***\ntense1       -13.174     12.579  -1.047               0.295    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 146.6 on 541 degrees of freedom\nMultiple R-squared:  0.002024,  Adjusted R-squared:  0.0001789 \nF-statistic: 1.097 on 1 and 541 DF,  p-value: 0.2954"
   },
   {
-    "objectID": "_et_reading.html#independent-variables",
-    "href": "_et_reading.html#independent-variables",
-    "title": "3  Eye-tracking during reading",
-    "section": "5.4 Independent variables",
-    "text": "5.4 Independent variables\n\nwhat can influence reading measures? (Clifton & Staub, 2011; Juhasz & Pollatsek, 2011; Rayner & Liversedge, 2011; Warren, 2011)\n\nsome examples:\n\n\n\n\n\nWord properties\n\nword frequency\nword length\n\n\n\n\nSentence-level influences\n\ncontext (i.e., prediction)\nsemantic or grammatical manipulations\n\n\n\n\nInter- and intra-individual\n\ndomain-specific expertise\nreading skill level"
+    "objectID": "mult_reg.html#adding-another-predictor",
+    "href": "mult_reg.html#adding-another-predictor",
+    "title": "7  Multiple Regression",
+    "section": "9.1 Adding another predictor",
+    "text": "9.1 Adding another predictor\n\nin our experimental design we were interested in the effect of lifetime on the processing of two different tenses: the Present Perfect and Simple Future\n\nin other words, we had two fixed factors: lifetime and tense\n\nmultiple regression is not the same as running separate simple linear models, rather each coefficient becomes a partial regression coefficient"
   },
   {
-    "objectID": "_et_reading.html#what-do-these-measures-tell-us",
-    "href": "_et_reading.html#what-do-these-measures-tell-us",
-    "title": "3  Eye-tracking during reading",
-    "section": "5.5 What do these measures tell us?",
-    "text": "5.5 What do these measures tell us?\n\neye-tracking during reading can tell use when and where processing costs are incurred\nearly measures involve “first contact with a word” or region: first-fixation, first-pass reading time (Vasishth et al., 2013, p. 126)\nlate measures involve regressions to a region: e.g., total reading time\n\nmay also include ‘spillover’ effects from early processing\n\neye-tracking during reading measures can therefore tell us about stages of processing"
+    "objectID": "mult_reg.html#fit-model-1",
+    "href": "mult_reg.html#fit-model-1",
+    "title": "7  Multiple Regression",
+    "section": "9.2 Fit model",
+    "text": "9.2 Fit model\n\nwe can use + to indicate we have another fixed effect, and that we want to look at the main effect of this predictor\n\n\n# multiple regression\nfit_fp &lt;-\n  df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;% \n  lm(fp ~ lifetime + tense, data = .)\n\n\n9.2.1 Model summary\n\nsummary(fit_fp)\n\n\nCall:\nlm(formula = fp ~ lifetime + tense, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-235.28 -107.36  -27.75   58.72  784.02 \n\nCoefficients:\n            Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)  309.130      6.258  49.394 &lt;0.0000000000000002 ***\nlifetime1     31.537     12.518   2.519               0.012 *  \ntense1       -12.768     12.518  -1.020               0.308    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 145.8 on 540 degrees of freedom\nMultiple R-squared:  0.01362,   Adjusted R-squared:  0.009964 \nF-statistic: 3.727 on 2 and 540 DF,  p-value: 0.02468"
   },
   {
-    "objectID": "_et_dataset.html",
-    "href": "_et_dataset.html",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "",
-    "text": "Set-up\nlibrary(here) # relative path\nlibrary(tidyverse) # tidy/transform\nlibrary(beepr) # beeps when code runs or fails\nlibrary(rbbt) # zotero plugin\nbeep code\n## play sound if error encountered\n### from: https://sejohnston.com/2015/02/24/make-r-beep-when-r-markdown-finishes-or-when-it-fails/\noptions(error = function(){    # Beep on error\n  beepr::beep(sound = \"wilhelm\")\n  Sys.sleep(2) # \n  }\n )\n## and when knitting is complete\n.Last &lt;- function() {          # Beep on exiting session\n  beepr::beep(sound = \"ping\")\n  Sys.sleep(6) # allow to play for 6 seconds\n  }\nrbbt code\n# Create references.json file based on the citations in this script:\n# 1. make sure you have 'bibliography: references/references.json' in the YAML\n# 2. create a new folder called 'references'\n# 3. run:\nrbbt::bbt_update_bib(\"_et_dataset.qmd\")\n\n\nError: not found: comrie_aspect_1976\nShow Session Info\nsessionInfo()\n\n\nR version 4.3.0 (2023-04-21)\nPlatform: aarch64-apple-darwin20 (64-bit)\nRunning under: macOS Ventura 13.2.1\n\nMatrix products: default\nBLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib \nLAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0\n\nlocale:\n[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8\n\ntime zone: Europe/Berlin\ntzcode source: internal\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nother attached packages:\n [1] rbbt_0.0.0.9000 beepr_1.3       lubridate_1.9.2 forcats_1.0.0  \n [5] stringr_1.5.0   dplyr_1.1.2     purrr_1.0.1     readr_2.1.4    \n [9] tidyr_1.3.0     tibble_3.2.1    ggplot2_3.4.2   tidyverse_2.0.0\n[13] here_1.0.1     \n\nloaded via a namespace (and not attached):\n [1] utf8_1.2.3        generics_0.1.3    stringi_1.7.12    hms_1.1.3        \n [5] digest_0.6.31     magrittr_2.0.3    evaluate_0.21     grid_4.3.0       \n [9] timechange_0.2.0  fastmap_1.1.1     rprojroot_2.0.3   jsonlite_1.8.5   \n[13] audio_0.1-10      httr_1.4.6        fansi_1.0.4       scales_1.2.1     \n[17] cli_3.6.1         crayon_1.5.2      rlang_1.1.1       bit64_4.0.5      \n[21] munsell_0.5.0     withr_2.5.0       yaml_2.3.7        parallel_4.3.0   \n[25] tools_4.3.0       tzdb_0.4.0        colorspace_2.1-0  curl_5.0.1       \n[29] vctrs_0.6.3       R6_2.5.1          lifecycle_1.0.3   fs_1.6.2         \n[33] htmlwidgets_1.6.2 bit_4.0.5         vroom_1.6.3       pkgconfig_2.0.3  \n[37] pillar_1.9.0      gtable_0.3.3      glue_1.6.2        xfun_0.39        \n[41] tidyselect_1.2.0  rstudioapi_0.14   knitr_1.43        htmltools_0.5.5  \n[45] rmarkdown_2.22    compiler_4.3.0"
+    "objectID": "mult_reg.html#comparing-summaries",
+    "href": "mult_reg.html#comparing-summaries",
+    "title": "7  Multiple Regression",
+    "section": "9.3 Comparing summaries",
+    "text": "9.3 Comparing summaries\n\ntidy(fit_fp_lifetime) %&gt;% kable() %&gt;% kable_styling()\n\n\n\nTable 9.1: Coefficients for fit_fp_lifetime (fp ~ lifetime)\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\n\n\n\n\n(Intercept)\n309.14208\n6.258665\n49.39425\n0.0000000\n\n\nlifetime1\n31.70113\n12.517330\n2.53258\n0.0116043\n\n\n\n\n\n\n\n\n\ntidy(fit_fp_tense) %&gt;% kable() %&gt;% kable_styling()\n\n\n\nTable 9.2: Coefficients for fit_fp_tense (fp ~ tense)\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\n\n\n\n\n(Intercept)\n309.15914\n6.289283\n49.156500\n0.0000000\n\n\ntense1\n-13.17437\n12.578566\n-1.047366\n0.2953983\n\n\n\n\n\n\n\n\n\ntidy(fit_fp) %&gt;% kable() %&gt;% kable_styling()\n\n\n\nTable 9.3: Coefficients for fit_fp (fp ~ lifetime + tense)\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\n\n\n\n\n(Intercept)\n309.13047\n6.258442\n49.394159\n0.0000000\n\n\nlifetime1\n31.53658\n12.517903\n2.519318\n0.0120458\n\n\ntense1\n-12.76792\n12.517903\n-1.019973\n0.3081979"
   },
   {
-    "objectID": "_et_dataset.html#our-first-dataset",
-    "href": "_et_dataset.html#our-first-dataset",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "5.1 Our first dataset",
-    "text": "5.1 Our first dataset\n\n\n\nreferent-lifetime context\n\ndead/alive\n\ncritical sentence\n\nPresent Perfect/Simple Future\n\nbinary naturalness judgement to end trial\n\naccept/reject\n\n\n\n\n\nVideo"
+    "objectID": "mult_reg.html#partial-regression-coefficients",
+    "href": "mult_reg.html#partial-regression-coefficients",
+    "title": "7  Multiple Regression",
+    "section": "9.4 Partial regression coefficients",
+    "text": "9.4 Partial regression coefficients\n\nin multiple regression, each predictor becomes a partial regression coefficient\n\nthe effect of one predictor while holding all other predictors constant\n\n\n\\[\n\\begin{align}\nfp &= 309.1 + (31.5\\times lifetime) + (-12.8\\times tense)\\\\\nfp_{dead-PP} &= 309.1 + (31.5\\times 0.5) + (-12.8\\times -0.5)\n\\end{align}\n\\]"
   },
   {
-    "objectID": "_et_dataset.html#design-description",
-    "href": "_et_dataset.html#design-description",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "5.2 Design description",
-    "text": "5.2 Design description\n\n\n\n2x2 mixed design\n\ntwo 2-level factors (2x2 = 2-level x 2-level)\n\nfactor 1: lifetime (levels: dead, alive)\nfactor 2: tense (levels: PP, SF)\n\n\n\n\n\n\n\n\nalive\ndead\n\n\n\n\nPP\nEddie Redmayne…has won\nGene Kelly…*has won\n\n\nSF\nEddie Redmayne…will win\nGene Kelly…*will win\n\n\n\n\n\n\n\n\npredictors/independent variables\n\nlifetime\ntense\n\n\n\n\nmeasure/dependent variables (verb region)\n\nfirst-fixation time (milliseconds)\nfirst-pass reading time (ms)\nregression path duration (ms)\ntotal reading time (ms)\n\n\n\n\n\n5.2.1 Repeated measures design\n\nobservations are repeated e.g., multiple data points per participant, and per item across participants\n\nessentially, data are not independent\ne.g., each participant will have their own reading speed, some items might be systematically less acceptable for some unforeseen reason, etc."
+    "objectID": "mult_reg.html#exploring-the-model-fixed-effects",
+    "href": "mult_reg.html#exploring-the-model-fixed-effects",
+    "title": "7  Multiple Regression",
+    "section": "Exploring the model: fixed effects",
+    "text": "Exploring the model: fixed effects\n\nwhat were our coefficients?\n\n\ncoef(fit_fp)\n\n(Intercept)   lifetime1      tense1 \n  309.13047    31.53658   -12.76792 \n\n\n\nwhat is the mean of lifetime coded as -0.5 (living)?\n\n\ncoef(fit_fp)['(Intercept)'] + coef(fit_fp)['lifetime1'] * -0.5\n\n(Intercept) \n   293.3622 \n\n\n\nignore the (Intercept) label here, R just takes the first label when performing an operation on 2 vectors\nwhat is the mean of lifetime coded as +0.5 (dead)?\n\n\ncoef(fit_fp)['(Intercept)'] + coef(fit_fp)['lifetime1'] * 0.5\n\n(Intercept) \n   324.8988 \n\n\n\n9.4.1 Exercise\n\ndo the same for tense:\n\nfind the fitted value for PP and for SF"
   },
   {
-    "objectID": "_et_dataset.html#install-packages",
-    "href": "_et_dataset.html#install-packages",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.1 Install packages",
-    "text": "6.1 Install packages\n\ninstall.packages(\"tidyverse\")\ninstall.packages(\"here\")\n\n\ninstall\n\nonly do once\n…or when you working on a new computer\n…or after updating R\n\nmight be a wise idea to create a script just for installing packages\n\ncan save time/energy when updating R"
+    "objectID": "mult_reg.html#exploring-the-model-predicting-fp",
+    "href": "mult_reg.html#exploring-the-model-predicting-fp",
+    "title": "7  Multiple Regression",
+    "section": "9.5 Exploring the model: predicting fp",
+    "text": "9.5 Exploring the model: predicting fp\n\n\n\n\n\n\nTable 9.4: Coefficient estimates\n\n\nterm\nestimate\n*0.5\n\n\n\n\n(Intercept)\n309.1\n154.6\n\n\nlifetime1\n31.5\n15.8\n\n\ntense1\n-12.8\n-6.4\n\n\n\n\n\n\n\n\n\n\n\n\n\nTable 9.5: Fitted values per condition\n\n\nlifetime\ntense\n.fitted\nfp\nmean_diff\n\n\n\n\nliving\nPP\n299.7\n294.3\n-5.5\n\n\nliving\nSF\n287.0\n292.4\n5.4\n\n\ndead\nPP\n331.3\n336.6\n5.3\n\n\ndead\nSF\n318.5\n313.0\n-5.5\n\n\n\n\n\n\n\n\n\n\n\n9.5.1 Calculating fitted values by hand\n\\[\nfp = b_0 + (b_1\\times lifetime) + (b_2\\times tense) + e\n\\]\n\n# living-PP\ncoef(fit_fp)['(Intercept)'] + \n  coef(fit_fp)['lifetime1'] * -0.5 + coef(fit_fp)['tense1'] * -0.5 \n\n(Intercept) \n   299.7461 \n\n\n\n# living-SF\ncoef(fit_fp)['(Intercept)'] + \n  coef(fit_fp)['lifetime1'] * -0.5 + coef(fit_fp)['tense1'] * 0.5 \n\n(Intercept) \n   286.9782 \n\n\n\n# dead-PP\ncoef(fit_fp)['(Intercept)'] + \n  coef(fit_fp)['lifetime1'] * 0.5 + coef(fit_fp)['tense1'] * -0.5 \n\n(Intercept) \n   331.2827 \n\n\n\n# dead-SF\ncoef(fit_fp)['(Intercept)'] + \n  coef(fit_fp)['lifetime1'] * 0.5 + coef(fit_fp)['tense1'] * 0.5 \n\n(Intercept) \n   318.5148"
   },
   {
-    "objectID": "_et_dataset.html#load-packages",
-    "href": "_et_dataset.html#load-packages",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.2 Load packages",
-    "text": "6.2 Load packages\n\nlibrary(tidyverse)\nlibrary(here)\n\n\nload packages\n\nneeded at the start of each session"
+    "objectID": "mult_reg.html#exploring-the-model-residuals",
+    "href": "mult_reg.html#exploring-the-model-residuals",
+    "title": "7  Multiple Regression",
+    "section": "Exploring the model: residuals",
+    "text": "Exploring the model: residuals\n\nrecall that residuals = the difference between our fitted (model) values and our observed (data) values\n\n\n# what do our FITTED values look like?\nhead(fitted(fit_fp))\n\n       1        2        3        4        5        6 \n299.7461 299.7461 331.2827 299.7461 318.5148 286.9782 \n\n\n\n# what do our OBSERVED values look like?\nhead(df_crit_verb$fp)\n\n[1] 175 413 960 231 407 319\n\n\n\n# what is the difference between the FITTED and OBSERVED values?\nhead(df_crit_verb$fp) - head(fitted(fit_fp))\n\n         1          2          3          4          5          6 \n-124.74615  113.25385  628.71727  -68.74615   88.48520   32.02178 \n\n\n\n# what are our RESIDUALS?\nhead(residuals(fit_fp))\n\n         1          2          3          4          5          6 \n-124.74615  113.25385  628.71727  -68.74615   88.48520   32.02178"
   },
   {
-    "objectID": "_et_dataset.html#load-dataset",
-    "href": "_et_dataset.html#load-dataset",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.3 Load dataset",
-    "text": "6.3 Load dataset\n\ndf_lifetime &lt;- readr::read_csv(here::here(\"data/data_lifetime_pilot.csv\"))\n\n\nN.B., readr::read_csv can be read as “read_csv() function in the readr package”\n\ni.e., package::function()\nyou only need to use this syntax if you haven’t loaded the specific package yet (maybe because you only need it once), or if a function name is included in multiple packages (i.e., there’s a discrepancy in what read_csv could be referring to)\nwhy did I use it here?"
+    "objectID": "mult_reg.html#plotting-our-effects",
+    "href": "mult_reg.html#plotting-our-effects",
+    "title": "7  Multiple Regression",
+    "section": "9.6 Plotting our effects",
+    "text": "9.6 Plotting our effects\n\nbased on these plots, it seems like the effects of lifetime and tense differed\n\nthe slant in figure A (effect of lifetime) looks steeper for the PP than the SF\n\nthis could reflect an interaction effect\n\n\n\n\n\n\nFigure 9.1: Plotting our two predictors\n\n\n\n\n\n9.6.1 Plotting coefficients with sjPlot\n\nplot_model(fit_fp) +\n  geom_hline(yintercept=0) +\n  theme_bw()"
   },
   {
-    "objectID": "_et_dataset.html#section",
-    "href": "_et_dataset.html#section",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.4 ",
-    "text": "6.4 \n\n\n\n\n\n\nhere package\n\n\n\n\n\nUsing the here package, we can access files relative to where our .RProj is stored.\nIn ‘olden times’, we had to specify the file path with something like:\n\n# load in data from an *absolute* file path\ndf_lifetime &lt;- read_csv(\"Users/yournamehere/Documents/SoSe2023/ET_reading/data/data_lifetime_pilot.csv\")\n\nOr, we’d set an absolute path as our working directory, to which all other file paths were relative\n\n# set *absolute* path as working directory\nsetwd(\"Users/username/Documents/SoSe2023/ET_reading\")\n\n# load in data *relative* to our wd\ndf_lifetime &lt;- read_csv(\"data/data_lifetime_pilot.csv\")\n\nThis meant that if I sent my project folder to somebody else, they wouldn’t be able to run my code because they would have to change the absolute file path to match their machine."
+    "objectID": "mult_reg.html#fitting-an-interaction-term-to-our-model",
+    "href": "mult_reg.html#fitting-an-interaction-term-to-our-model",
+    "title": "7  Multiple Regression",
+    "section": "10.1 Fitting an interaction term to our model",
+    "text": "10.1 Fitting an interaction term to our model\n\nto add an interaction, we can use a colon to separate two variables\n\nlifetime:tense\n\nhowever, it’s common to use an asterisk instead, which means “fit main effects of these variables and their interaction*\n\nlifetime:tense\n\n\n\n# multiple regression\nfit_fp_inter &lt;-\n  df_crit_verb %&gt;%\n  filter(fp &gt; 0) %&gt;% \n  lm(fp ~ lifetime*tense, data = .)\n\n\nsummary(fit_fp_inter)\n\n\nCall:\nlm(formula = fp ~ lifetime * tense, data = .)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-240.62 -108.69  -27.62   56.20  778.65 \n\nCoefficients:\n                 Estimate Std. Error t value            Pr(&gt;|t|)    \n(Intercept)        309.06       6.26  49.367 &lt;0.0000000000000002 ***\nlifetime1           31.52      12.52   2.517              0.0121 *  \ntense1             -12.75      12.52  -1.018              0.3090    \nlifetime1:tense1   -21.69      25.04  -0.866              0.3868    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 145.9 on 539 degrees of freedom\nMultiple R-squared:  0.01499,   Adjusted R-squared:  0.009506 \nF-statistic: 2.734 on 3 and 539 DF,  p-value: 0.04306"
   },
   {
-    "objectID": "_et_dataset.html#inspect-dataset",
-    "href": "_et_dataset.html#inspect-dataset",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.5 Inspect dataset",
-    "text": "6.5 Inspect dataset\n\nthere are several different things you can inspect\n\nand different ways to accomplish those things\n\nthe first thing I usually do is look at the column/variable names\n\n\n6.5.1 names()\n\n\n\nthe names in all caps are variables created during the experiment\n\ni.e., they are our recorded data, mainly what we wanted to measure: dependent variables (DV)\nalso includes some information about the experiment set-up per participant\n\nthe other names are variables from my stimuli lists\n\ni.e., they mostly contain our independent variables (IV)/stimuli\n\nwe typically want to see what effect our IVs had on any given DVs\nvariable descriptions can be found on the Moodle: Data &gt; Documentation\n\n\n\n\nnames(df_lifetime)\n\n [1] \"RECORDING_SESSION_LABEL\"     \"TRIAL_INDEX\"                \n [3] \"EYE_USED\"                    \"IA_DWELL_TIME\"              \n [5] \"IA_FIRST_FIXATION_DURATION\"  \"IA_FIRST_RUN_DWELL_TIME\"    \n [7] \"IA_FIXATION_COUNT\"           \"IA_ID\"                      \n [9] \"IA_LABEL\"                    \"IA_REGRESSION_IN\"           \n[11] \"IA_REGRESSION_IN_COUNT\"      \"IA_REGRESSION_OUT\"          \n[13] \"IA_REGRESSION_OUT_COUNT\"     \"IA_REGRESSION_PATH_DURATION\"\n[15] \"KeyPress\"                    \"rt\"                         \n[17] \"bio\"                         \"critical\"                   \n[19] \"gender\"                      \"item_id\"                    \n[21] \"list\"                        \"match\"                      \n[23] \"condition\"                   \"name\"                       \n[25] \"name_vital_status\"           \"tense\"                      \n[27] \"type\"                        \"yes_press\"                  \n\n\n\n\n\n\n6.5.2 rename()\n\nthe dependent variable names are pretty clunky, let’s rename a few:\n\nRECORDING_SESSION_LABEL corresponds to a single participant\nTRIAL_INDEX logged the trial number\nEYE_USED logged which eye was tracked\n\n\n\n\nCode\ndf_lifetime &lt;- df_lifetime %&gt;%\n  rename(\"px\" = RECORDING_SESSION_LABEL,\n         \"trial\" = TRIAL_INDEX,\n         \"eye\" = EYE_USED)\n\n\n\n6.5.2.1 Naming variables\n\n\n\n\n\n\nNaming conventions\n\n\n\nIt’s wise to keep variable and object names concise but informative\n\nall lowercase means fewer key strokes overall\nseparate words with either periods or underscores, e.g., trial.index or trial_index\ne.g., we called our dataset df_lifetime because it is a dataframe (df) with data from our lifetime experiment\n\n\n\n\n\n\n6.5.3 Data structure\n\ndatasets typically contain a lot of rows and columns\n\nso we want to get a feel for how the data is structured\n\n\n\nwith base Rwith the tidyverse pipewith the native R pipe (Ctrl/Cmd+Shift+M)\n\n\n\nhead(df_lifetime)\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\ndf_lifetime %&gt;%\n  head()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\ndf_lifetime |&gt; \n  head()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\n\n\n6.5.4 head() function\n\nprints the first 6 rows of your data\n\nyou can also specify the number of rows\n\n\n\n\nCode\ndf_lifetime %&gt;%\n  head(n = 2)\n\n\n# A tibble: 2 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\nhead() function task\n\n\n\n\n\n\nExercise: head()\n\n\n\n\n\n\nprint only 2 rows using whichever syntax you prefer\nchange n = 2 to some other number and print\nrun ?head in the Console\n\nfind the opposite function (i.e., prints last rows) in the function description?\n\nrun this function with df_lifetime as argument; how many rows does it print as default?\nplay with n = in this function to print some other number of rows\n\n\n\n\n\n\n6.5.5 tail() function\n\nprints the last rows of a dataframe (or matrix, vector, table, or function)\n\n\ndf_lifetime %&gt;%\n  tail()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px4     207 LEFT            509                     218                    509\n2 px4     208 LEFT              0                       0                      0\n3 px4     208 LEFT            317                     167                    317\n4 px4     208 LEFT            162                     162                    162\n5 px4     208 LEFT            139                     139                    139\n6 px4     208 LEFT            280                     280                    280\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n6.5.6 names()\n\nprints the column/variable names\n\n\ndf_lifetime %&gt;%\n  names()\n\n [1] \"px\"                          \"trial\"                      \n [3] \"eye\"                         \"IA_DWELL_TIME\"              \n [5] \"IA_FIRST_FIXATION_DURATION\"  \"IA_FIRST_RUN_DWELL_TIME\"    \n [7] \"IA_FIXATION_COUNT\"           \"IA_ID\"                      \n [9] \"IA_LABEL\"                    \"IA_REGRESSION_IN\"           \n[11] \"IA_REGRESSION_IN_COUNT\"      \"IA_REGRESSION_OUT\"          \n[13] \"IA_REGRESSION_OUT_COUNT\"     \"IA_REGRESSION_PATH_DURATION\"\n[15] \"KeyPress\"                    \"rt\"                         \n[17] \"bio\"                         \"critical\"                   \n[19] \"gender\"                      \"item_id\"                    \n[21] \"list\"                        \"match\"                      \n[23] \"condition\"                   \"name\"                       \n[25] \"name_vital_status\"           \"tense\"                      \n[27] \"type\"                        \"yes_press\"                  \n\n\n\n\n6.5.7 summary()\n\nprints a summary of each variable (column)\n\n\ndf_lifetime %&gt;%\n  summary()\n\n      px                trial           eye            IA_DWELL_TIME   \n Length:4431        Min.   :  1.0   Length:4431        Min.   :   0.0  \n Class :character   1st Qu.: 52.5   Class :character   1st Qu.:   0.0  \n Mode  :character   Median :104.0   Mode  :character   Median : 301.0  \n                    Mean   :105.0                      Mean   : 587.5  \n                    3rd Qu.:157.0                      3rd Qu.: 765.5  \n                    Max.   :208.0                      Max.   :8968.0  \n IA_FIRST_FIXATION_DURATION IA_FIRST_RUN_DWELL_TIME IA_FIXATION_COUNT\n Min.   :  0.0              Min.   :   0.0          Min.   : 0.000   \n 1st Qu.:  0.0              1st Qu.:   0.0          1st Qu.: 0.000   \n Median :161.0              Median : 245.0          Median : 2.000   \n Mean   :139.4              Mean   : 507.9          Mean   : 2.714   \n 3rd Qu.:202.5              3rd Qu.: 586.0          3rd Qu.: 4.000   \n Max.   :775.0              Max.   :8968.0          Max.   :35.000   \n     IA_ID         IA_LABEL         IA_REGRESSION_IN  IA_REGRESSION_IN_COUNT\n Min.   :1.000   Length:4431        Min.   :0.00000   Min.   :0.0000        \n 1st Qu.:1.000   Class :character   1st Qu.:0.00000   1st Qu.:0.0000        \n Median :2.000   Mode  :character   Median :0.00000   Median :0.0000        \n Mean   :2.681                      Mean   :0.09817   Mean   :0.1318        \n 3rd Qu.:4.000                      3rd Qu.:0.00000   3rd Qu.:0.0000        \n Max.   :6.000                      Max.   :1.00000   Max.   :5.0000        \n IA_REGRESSION_OUT IA_REGRESSION_OUT_COUNT IA_REGRESSION_PATH_DURATION\n Min.   :0.00000   Min.   :0.00000         Min.   :    0.0            \n 1st Qu.:0.00000   1st Qu.:0.00000         1st Qu.:    0.0            \n Median :0.00000   Median :0.00000         Median :  282.0            \n Mean   :0.08147   Mean   :0.09185         Mean   :  595.6            \n 3rd Qu.:0.00000   3rd Qu.:0.00000         3rd Qu.:  747.0            \n Max.   :1.00000   Max.   :7.00000         Max.   :10242.0            \n    KeyPress           rt            bio              critical        \n Min.   :4.000   Min.   :  533   Length:4431        Length:4431       \n 1st Qu.:4.000   1st Qu.: 1332   Class :character   Class :character  \n Median :4.000   Median : 1890   Mode  :character   Mode  :character  \n Mean   :4.496   Mean   : 2467                                        \n 3rd Qu.:5.000   3rd Qu.: 2910                                        \n Max.   :5.000   Max.   :15654                                        \n    gender             item_id            list          match          \n Length:4431        Min.   :  1.00   Min.   :14.00   Length:4431       \n Class :character   1st Qu.: 26.00   1st Qu.:15.00   Class :character  \n Mode  :character   Median : 51.00   Median :25.00   Mode  :character  \n                    Mean   : 64.16   Mean   :29.45                     \n                    3rd Qu.: 78.50   3rd Qu.:35.00                     \n                    Max.   :208.00   Max.   :45.00                     \n  condition             name           name_vital_status     tense          \n Length:4431        Length:4431        Length:4431        Length:4431       \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n     type             yes_press    \n Length:4431        Min.   :4.000  \n Class :character   1st Qu.:4.000  \n Mode  :character   Median :4.000  \n                    Mean   :4.499  \n                    3rd Qu.:5.000  \n                    Max.   :5.000  \n\n\n\n\n6.5.8 Exercise\nTake some time to explore the dataset.\n\ndouble click on the dataset name in the Environment pane to view it like a spreadsheet\nlook at the names, can you figure out what they represent?"
-  },
-  {
-    "objectID": "_et_dataset.html#class-types",
-    "href": "_et_dataset.html#class-types",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.6 class types",
-    "text": "6.6 class types\n\nthere are difference classes of data that R can read\n\nthe function class() takes as its argument an object or number\n\n\n\ndf_lifetime$rt %&gt;%\n  class()\n\n[1] \"numeric\""
-  },
-  {
-    "objectID": "_et_dataset.html#section-1",
-    "href": "_et_dataset.html#section-1",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.7 ",
-    "text": "6.7 \n\n\n\n\n\n\nSelecting a column\n\n\n\n\n\n\n# with column index\ndf_lifetime[2] %&gt;% summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n# with column name\ndf_lifetime[,\"trial\"] %&gt;% summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n# with data$column_name\ndf_lifetime$trial %&gt;% summary()\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n    1.0    52.5   104.0   105.0   157.0   208.0 \n\n\n\n# with the tidyverse: select()\ndf_lifetime %&gt;% \n  select(trial) %&gt;%\n  summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n\n\n\n6.7.1 character class\n\ncontain strings: collection of characters (i.e., text)\nthere’s no grouping in character variables\n\neach value is considered ‘unique’ and assumed to not be repeated\n\nwe usually aren’t interested in character class variables\n\nunless e.g., we have unique values per row (e.g., if a participant gave a free-text answer)\nor perhaps we have stored some stimuli sentences\n\nalthough this would arguably be better as a ‘category’, since there should be multiple trials across participants that contain the same sentences\n\n\n\n\n\n6.7.2 numeric class\n\nvariables with numeric values, usually some variable we’d want to compute summaries on, e.g., means\nsometimes we don’t want numbers to be stored as numeric class, however\n\nthis is the case for our variables yes_press and KeyPress (with 4 or 5)\n\nthe same is true for our variable item_id, which ranges from 1:120\n\nthe numbers are just unique codes for our stimuli, the difference between item 1 and item 2 has nothing to do with the difference between the numbers 1 and 2\n\n\n\n\n6.7.3 factor class\n\nwe typically want grouping variables to be factor class\n\nfactors contain categorical data\nany number that could be replaced with some other label should be a factor\n\nregion of interest (ROI) = 1:7\n\nbut we want to know how many observations per region, the number is not informative\nROI could alternatively be coded as, e.g., “adverb”, “pronoun”, “verb”, “spillover”\n\n\n\n\nfactor class\n\nlet’s change df_lifetime$yes_press to factor\n\nusing the mutate() verb from dplyr\nand as_factor() from forcats\n\n\n\n# change yes_press to factor\ndf_lifetime %&gt;%\n  mutate(yes_press = as_factor(yes_press))\n\n# A tibble: 4,431 × 28\n   px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DU…¹ IA_FIRST_RUN_DWELL_T…²\n   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                  &lt;dbl&gt;                  &lt;dbl&gt;\n 1 px3       1 RIGHT             0                      0                      0\n 2 px3       2 RIGHT             0                      0                      0\n 3 px3       3 RIGHT             0                      0                      0\n 4 px3       3 RIGHT             0                      0                      0\n 5 px3       3 RIGHT             0                      0                      0\n 6 px3       3 RIGHT             0                      0                      0\n 7 px3       3 RIGHT             0                      0                      0\n 8 px3       3 RIGHT             0                      0                      0\n 9 px3       4 RIGHT             0                      0                      0\n10 px3       5 RIGHT             0                      0                      0\n# ℹ 4,421 more rows\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;, …\n\n\n\n\n6.7.4 multiple arguments in a verb\n\nwe can also change multiple columns at once:\n\n\n# change ROI & label to factor\ndf_lifetime %&gt;%\n  mutate(KeyPress = as_factor(KeyPress),\n         item_id = as_factor(item_id))\n\n# A tibble: 4,431 × 28\n   px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DU…¹ IA_FIRST_RUN_DWELL_T…²\n   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                  &lt;dbl&gt;                  &lt;dbl&gt;\n 1 px3       1 RIGHT             0                      0                      0\n 2 px3       2 RIGHT             0                      0                      0\n 3 px3       3 RIGHT             0                      0                      0\n 4 px3       3 RIGHT             0                      0                      0\n 5 px3       3 RIGHT             0                      0                      0\n 6 px3       3 RIGHT             0                      0                      0\n 7 px3       3 RIGHT             0                      0                      0\n 8 px3       3 RIGHT             0                      0                      0\n 9 px3       4 RIGHT             0                      0                      0\n10 px3       5 RIGHT             0                      0                      0\n# ℹ 4,421 more rows\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;fct&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;fct&gt;, list &lt;dbl&gt;, match &lt;chr&gt;, …\n\n\n\n\n6.7.5 Pop quiz\n\nWhich class should the following variables be (numeric, factor, or character)?:\n\nparticipant ID\ntrial number\nfirst-pass reading time\nregression path duration\nregressions in\ncontext sentence\nlifetime\ntense\ncelebrity name\n\nchange them to these class types, and print a summary\nsave and render the document"
-  },
-  {
-    "objectID": "_et_dataset.html#plot-the-data",
-    "href": "_et_dataset.html#plot-the-data",
-    "title": "4  Working with eye-tracking reading data in R",
-    "section": "6.8 Plot the data",
-    "text": "6.8 Plot the data\n\n\nat this stage we want to explore the data\n\ndistribution\n\npeaks, spread\n\nboundaries\n\n\n\n\n\nHistogram\n\nhist(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\nBoxplot\n\nboxplot(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\nScatterplot\n\nplot(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\n\n\n6.8.1 Plotting two variables\nScatterplot\n\nplot(df_lifetime$IA_FIRST_FIXATION_DURATION, df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\n\n6.8.2 Exercise\nIn your Quarto document:\n\ncreate a heading ‘Data exploration’\n\n\nbriefly describe the data\n\n\nFor each of our depenent variables:\n\n\ncreate a subheading\ncalculate the mean and standard deviation of the variable (mean(), sd()) + create a boxplot of the variable\n\n\nRender the document often to make sure it runs\nUpload the source file (day1-nachname_vorname.qmd) to Moodle\ndownload the source file below yours in the list to the same folder, and try to run it\n\n\ndoes it run?\n\n\n\n6.8.3 \n\n\n\n\n\n\nprint options\n\n\n\n\neach code chunk can have different print options:\n\neval = FALSE: do not evaluate this chunk\ninclude = FALSE evaluate this chunk but don’t show it or its results\necho = FALSE print this chunk code\nmessage = FALSE/warning = false don’t print warnings or messages\nerror = TRUE continue rendering document even if there’s an error\n\ndo not use error = TRUE for final versions! You want to make sure things work as they should\n\n\n\n```{r, eval = T, echo = T, results = \"asis\", warning}\ncode here\n```\nor\n```{r}\n#| eval: false\ncode here\n```"
-  },
-  {
-    "objectID": "notes/notes-to-self.html",
-    "href": "notes/notes-to-self.html",
-    "title": "GitHub Pages",
-    "section": "",
-    "text": "can make edits in main\ngit add, commit, push\nquarto publish\ngh-pages does not have docs/ folder\n\n\n\n\nAdd a new html to main docs/, then quarto publish\n\nis the new html put into gh-pages?"
-  },
-  {
-    "objectID": "notes/notes-to-self.html#try-next",
-    "href": "notes/notes-to-self.html#try-next",
-    "title": "GitHub Pages",
-    "section": "",
-    "text": "Add a new html to main docs/, then quarto publish\n\nis the new html put into gh-pages?"
-  },
-  {
-    "objectID": "reproducibility.html",
-    "href": "reproducibility.html",
-    "title": "",
-    "section": "",
-    "text": "Code"
-  },
-  {
-    "objectID": "reproducibility.html#replication",
-    "href": "reproducibility.html#replication",
-    "title": "",
-    "section": "1.1 Replication",
-    "text": "1.1 Replication\n\n“There is increasing concern that in modern research, false findings may be the majority or even the vast majority of published research claims”\n– Ioannidis (2005)\n\n\nreplication refers to re-running a previous experiment with as few differences as possible\n\naim: determine whether the original results were robust and are replicable\nif yes, great! the original findings are reliable\nif no, hmm, maybe the original findings were false positives? or due to some other factor?\n\nin recent years, researchers have tried to replicate classic studies in their field\n\nbut in many cases, they did not get the same effects the original study reported (and were famous for)\n\nthis began the replication crisis\n\n\n1.1.1 An example from language research\n\nNieuwland et al. (2018): a direct EEG1 replication (versus conceptual replication)\n\n\n\na multi-lab replication of DeLong et al. (2005)’s impactful paper\n\nDeLong et al. (2005): reported N400 effects elicted at unexpected nouns, but also on preceding determiners (English a/an) when it signalled an unexpected word,\n\ne.g., The day was breezy so the boy went outside to fly…a kite/*an airplane\ntaken as evidence of pre-activation of phonological form, graded by cloze probability\n\nNieuwland et al. (2018): replicated N400 at noun, but not at adjective\n\ni.e., failure to replicate a famous finding"
-  },
-  {
-    "objectID": "reproducibility.html#reproducibility",
-    "href": "reproducibility.html#reproducibility",
-    "title": "",
-    "section": "1.2 Reproducibility",
-    "text": "1.2 Reproducibility\n\nreproducibility refers to the ability to reproduce somebody’s analyses with their\n\ndata\nand code\n\nit is not something we do once, nor is it something that will get us published\n\nbut it’s important for open science and encourages transparency\n\n\n\n1.2.1 Replication vs. Reproducibility\n\nreplication of a study\n\nrepeating an experiment\ngetting similar results\n\nreproducibility of analyses\n\nrepeating analyses of the same data\ngetting the same results\n\ne.g., when you submit a paper to a journal, they make ask for your data and code so reviewers can reproduce your analyses\n\nrequires data and code\n\nif you have interesting findings, other researchers (or future you) may want to replicate your study to see if they can replicate your findings\n\n(may require) stimuli, set-up and presentation information, participant demographics"
-  },
-  {
-    "objectID": "reproducibility.html#open-science-why-should-i-care",
-    "href": "reproducibility.html#open-science-why-should-i-care",
-    "title": "",
-    "section": "1.3 Open Science: Why should I care?",
-    "text": "1.3 Open Science: Why should I care?\n\nScience is cumulative\n\nWe should ensure we’re building on reliable, robust findings\ni.e., it’s good scientific practice\n\nBecause the field cares\n\nreplication/reproducibility are beginning to be foregrounded by e.g., journals/job advertisements\n\nHelps future you\n\npre-registration, reproducible analyses, clean and shareable data: all help future you\n\n\n\n1.3.1 What can I do?\n\nthere’s a variety of open science practices that we can choose to implement\nsome suggestions from Kathawalla et al. (2021):\n\n\n\nLevel: Easy\n\nJournal Club\nProject workflow\nPre-prints\n\n\nLevel: Medium\n\nReproducible code\nSharing data\nTransparent manuscripts\nPre-registration\n\n\nLevel: Difficult\n\nRegistered reports\n\n\n\n\n\n1.3.2 How to do better science\n\ndon’t be afraid of making mistakes\n\n(most) researchers aren’t statisticians or programmers\ndo the best you can, and be transparent\n\ndoing some of the steps is better than doing none\n\n\n\n1.3.3 What will we learn here?\n\n\nDesign and Reporting\n\n\nPreregistration/Registered Reports\nTransparent writing\n\n\nAnalysis\n\n\nReproducible code\n\nwith open source software (R, RStudio, packages)\ndynamic reports with Quarto/Rmarkdown\n\nProject workflow\n\nfolder structure\n\nhow to sensibly set up your folders\n\ncontained environments\n\nusing RProjects and the here package\n\n\n\n\n\n\n\n\n\n\nImage source: Kathawalla et al. (2021) (all rights reserved)"
-  },
-  {
-    "objectID": "reproducibility.html#r-is-for-reproducibility",
-    "href": "reproducibility.html#r-is-for-reproducibility",
-    "title": "",
-    "section": "1.4 R is for Reproducibility",
-    "text": "1.4 R is for Reproducibility\n\nwe will be working with R, RStudio, Quarto, and RProjects\n\nR: a programming language for statistical computing and graphics\nRStudio: an integrated development environment (IDE)\n\nRStudio Desktop\nRStudio Server\n\nQuarto (similar to Rmarkdown): dynamic reports\n\ncombining text, code, and printed tables and figures\n\nRProjects: a workflow tool\n\ncontains all files necessary for a project\nworks with relative file paths"
-  },
-  {
-    "objectID": "reproducibility.html#exercises",
-    "href": "reproducibility.html#exercises",
-    "title": "",
-    "section": "1.5 Exercises",
-    "text": "1.5 Exercises\n\n1.5.1 RStudio\n\nOpen RStudio\n\nlocate the Environment, Files, and Console panes\nFile &gt; New File &gt; R script\nwrite [your birth-month number]*[the your birth day] and hit Enter\nwrite print(\"Hello World!\")\nwrite number &lt;- 3*32; this will create an object/variable ‘number’\nwrite string &lt;- \"Hello World!\"; this will create an object/variable ‘string’\nwrite number\nwrite string\nadd comments describing each step using #\nFile &gt; Save As"
-  },
-  {
-    "objectID": "reproducibility.html#section",
-    "href": "reproducibility.html#section",
-    "title": "",
-    "section": "",
-    "text": "# multiply 5 by 7\n5*7\n\n[1] 35\n\n\n\n# print some text\nprint(\"Hello World!\")\n\n[1] \"Hello World!\"\n\n\n\n# save an object 'number' with 5*7\nnumber &lt;- 5*7\n\n\n# save an object 'string' with text\nstring &lt;- \"Hello World!\"\n\n\n# print number\nnumber\n\n[1] 35\n\n\n\n# print string\nstring\n\n[1] \"Hello World!\"\n\n\n\n# do math with objects\nnumber+number\n\n[1] 70\n\n\n\nnumber*number\n\n[1] 1225\n\n\n\nnumber*2\n\n[1] 70\n\n\n\nmonth &lt;- 5\n\n\nday &lt;- 7\n\n\nmonth*day\n\n[1] 35\n\n\n\n1.5.2 Quarto2\n\nR scripts are a great way to keep track of what you did\n\nhowever, the output is not saved, and adding comments with # gets kind of chunky\nenter: dynamic reports!\n\ndynamic reports are those that combine text, code, and output\n\nthey are a great tool for communicating, collaborating, and documenting\nthey are also fantastic for note-taking\n\nRmarkdown vs. Quarto\n\nboth can combine text with code, outputting PDFs, Word Documents, html, or slides\nmain difference: Quarto has native support of a wider range of programming languages (e.g., Python and Julia)\n\nWant to know more? Check out Hadley Wickham’s intro (Wickham et al., n.d.)\n\n\n1.5.2.1 YAML\n\n---\ntitle: \"My title\"\nauthor: \"My name\"\nformat: html\n---\n\n\nYAML is a human-readable programming language used to configure documents\nformatting is important: but be sandwiched between --- and ---\nin Quarto the output type must at least be given (with R: pdf, html, revealjs)\n\n\n\n1.5.2.2 Headings and text\n\n# This is a heading\n\nThis is text.\n\n## This is a sub-heading\n\nThis is more text.\n\n\nheadings are indicated by #\n\nthe number of #’s indicates the heading level\n\n\n\n\n1.5.2.3 Code snippets\n# do some math\nyear &lt;- 1989\ndog &lt;- \"Lola\"\n\nsandwiched between markdown```{r} and `markdown\n\nshortcut: Ctrl/Cmd+Alt+I\n\n\n\n\n1.5.2.4 In-line code\n\nI was born on `r month`/`r day`/`r year`. My dog's name is `r dog`.\n\nI was born on 5/7/1989. My dog’s name is Lola.\n\ncode output that was run above text can be called in-line using `r `\n\n\n\n1.5.2.5 Altogether\n---\ntitle: \"My title\"\nauthor: \"My name\"\nformat: html\n---\n\n# This is a heading\n\nThis is text.\n\n## This is a sub-heading\n\nThis is more text.\n\nAdd some code chunks.\n\n```{r}\n# do some math\nyear &lt;- 1989\ndog &lt;- \"Lola\"\n```\n\nAnd use call objects for in-line code: I was born on `r month`/`r day`/`r year`. My dog's name is `r dog`.\n\n\n\n1.5.3 Quarto Exercises\n\n\n\nCreate a new Quarto document\n\nFile &gt; New File &gt; Quarto Document\nRead the instructions\nPractice running the chunks individually\nrender the document\nverify that you can modify the code, re-run it, and see modified output\n\n\n\n\nCreate one new Quarto document for each of the three built-in formats: HTML, PDF and Word.\n\nRender each of the three documents\nHow do the outputs differ?\nHow do the inputs differ?3\n\n\n\n\n\n\n1.5.4 Quarto cont’d\n\nChoose a Quarto document:\n\ngive it a title, your name (author), and unclick ‘Use visual markdown editor’\n\nRender\nYAML:\n\n\ntitle: \"Eye-tracking during reading\"\nsubtitle: \"Lecture 2 notes\"\nauthor: \"[YOUR NAME HERE]\"\nlang: en\ndate: `r Sys.Date()`\n\n\nRender\nyou can now try writing your class notes in this document (if you’re brave)"
-  },
-  {
-    "objectID": "reproducibility.html#footnotes",
-    "href": "reproducibility.html#footnotes",
-    "title": "",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nelectroencephalography↩︎\nhttps://r4ds.hadley.nz/quarto.html#workflow↩︎\nYou may need to install LaTeX in order to build the PDF output — RStudio will prompt you if this is necessary.↩︎"
-  },
-  {
-    "objectID": "et_dataset.html",
-    "href": "et_dataset.html",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "",
-    "text": "library(here) # relative path\nlibrary(tidyverse) # tidy/transform\nlibrary(beepr) # beeps when code runs or fails\nlibrary(rbbt) # zotero plugin\n\n\n\nbeep code\n## play sound if error encountered\n### from: https://sejohnston.com/2015/02/24/make-r-beep-when-r-markdown-finishes-or-when-it-fails/\noptions(error = function(){    # Beep on error\n  beepr::beep(sound = \"wilhelm\")\n  Sys.sleep(2) # \n  }\n )\n## and when knitting is complete\n.Last &lt;- function() {          # Beep on exiting session\n  beepr::beep(sound = \"ping\")\n  Sys.sleep(6) # allow to play for 6 seconds\n  }\n\n\n\n\nrbbt code\n# Create references.json file based on the citations in this script:\n# 1. make sure you have 'bibliography: references/references.json' in the YAML\n# 2. create a new folder called 'references'\n# 3. run:\nrbbt::bbt_update_bib(\"_et_dataset.qmd\")\n\n\nError: '_et_dataset.qmd' does not exist in current working directory ('/Users/danielapalleschi/Documents/Personal/repo-eda')."
-  },
-  {
-    "objectID": "et_dataset.html#our-first-dataset",
-    "href": "et_dataset.html#our-first-dataset",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "1.1 Our first dataset",
-    "text": "1.1 Our first dataset\n\n\n\nreferent-lifetime context\n\ndead/alive\n\ncritical sentence\n\nPresent Perfect/Simple Future\n\nbinary naturalness judgement to end trial\n\naccept/reject\n\n\n\n\n\nVideo"
-  },
-  {
-    "objectID": "et_dataset.html#design-description",
-    "href": "et_dataset.html#design-description",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "1.2 Design description",
-    "text": "1.2 Design description\n\n\n\n2x2 mixed design\n\ntwo 2-level factors (2x2 = 2-level x 2-level)\n\nfactor 1: lifetime (levels: dead, alive)\nfactor 2: tense (levels: PP, SF)\n\n\n\n\n\n\n\n\nalive\ndead\n\n\n\n\nPP\nEddie Redmayne…has won\nGene Kelly…*has won\n\n\nSF\nEddie Redmayne…will win\nGene Kelly…*will win\n\n\n\n\n\n\n\n\npredictors/independent variables\n\nlifetime\ntense\n\n\n\n\nmeasure/dependent variables (verb region)\n\nfirst-fixation time (milliseconds)\nfirst-pass reading time (ms)\nregression path duration (ms)\ntotal reading time (ms)\n\n\n\n\n\n1.2.1 Repeated measures design\n\nobservations are repeated e.g., multiple data points per participant, and per item across participants\n\nessentially, data are not independent\ne.g., each participant will have their own reading speed, some items might be systematically less acceptable for some unforeseen reason, etc."
-  },
-  {
-    "objectID": "et_dataset.html#install-packages",
-    "href": "et_dataset.html#install-packages",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.1 Install packages",
-    "text": "2.1 Install packages\n\ninstall.packages(\"tidyverse\")\ninstall.packages(\"here\")\n\n\ninstall\n\nonly do once\n…or when you working on a new computer\n…or after updating R\n\nmight be a wise idea to create a script just for installing packages\n\ncan save time/energy when updating R"
-  },
-  {
-    "objectID": "et_dataset.html#load-packages",
-    "href": "et_dataset.html#load-packages",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.2 Load packages",
-    "text": "2.2 Load packages\n\nlibrary(tidyverse)\nlibrary(here)\n\n\nload packages\n\nneeded at the start of each session"
-  },
-  {
-    "objectID": "et_dataset.html#load-dataset",
-    "href": "et_dataset.html#load-dataset",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.3 Load dataset",
-    "text": "2.3 Load dataset\n\ndf_lifetime &lt;- readr::read_csv(here::here(\"data/data_lifetime_pilot.csv\"))\n\n\nN.B., readr::read_csv can be read as “read_csv() function in the readr package”\n\ni.e., package::function()\nyou only need to use this syntax if you haven’t loaded the specific package yet (maybe because you only need it once), or if a function name is included in multiple packages (i.e., there’s a discrepancy in what read_csv could be referring to)\nwhy did I use it here?"
-  },
-  {
-    "objectID": "et_dataset.html#section",
-    "href": "et_dataset.html#section",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.4 ",
-    "text": "2.4 \n\n\n\n\n\n\nhere package\n\n\n\n\n\nUsing the here package, we can access files relative to where our .RProj is stored.\nIn ‘olden times’, we had to specify the file path with something like:\n\n# load in data from an *absolute* file path\ndf_lifetime &lt;- read_csv(\"Users/yournamehere/Documents/SoSe2023/ET_reading/data/data_lifetime_pilot.csv\")\n\nOr, we’d set an absolute path as our working directory, to which all other file paths were relative\n\n# set *absolute* path as working directory\nsetwd(\"Users/username/Documents/SoSe2023/ET_reading\")\n\n# load in data *relative* to our wd\ndf_lifetime &lt;- read_csv(\"data/data_lifetime_pilot.csv\")\n\nThis meant that if I sent my project folder to somebody else, they wouldn’t be able to run my code because they would have to change the absolute file path to match their machine."
-  },
-  {
-    "objectID": "et_dataset.html#inspect-dataset",
-    "href": "et_dataset.html#inspect-dataset",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.5 Inspect dataset",
-    "text": "2.5 Inspect dataset\n\nthere are several different things you can inspect\n\nand different ways to accomplish those things\n\nthe first thing I usually do is look at the column/variable names\n\n\n2.5.1 names()\n\n\n\nthe names in all caps are variables created during the experiment\n\ni.e., they are our recorded data, mainly what we wanted to measure: dependent variables (DV)\nalso includes some information about the experiment set-up per participant\n\nthe other names are variables from my stimuli lists\n\ni.e., they mostly contain our independent variables (IV)/stimuli\n\nwe typically want to see what effect our IVs had on any given DVs\nvariable descriptions can be found on the Moodle: Data &gt; Documentation\n\n\n\n\nnames(df_lifetime)\n\n [1] \"RECORDING_SESSION_LABEL\"     \"TRIAL_INDEX\"                \n [3] \"EYE_USED\"                    \"IA_DWELL_TIME\"              \n [5] \"IA_FIRST_FIXATION_DURATION\"  \"IA_FIRST_RUN_DWELL_TIME\"    \n [7] \"IA_FIXATION_COUNT\"           \"IA_ID\"                      \n [9] \"IA_LABEL\"                    \"IA_REGRESSION_IN\"           \n[11] \"IA_REGRESSION_IN_COUNT\"      \"IA_REGRESSION_OUT\"          \n[13] \"IA_REGRESSION_OUT_COUNT\"     \"IA_REGRESSION_PATH_DURATION\"\n[15] \"KeyPress\"                    \"rt\"                         \n[17] \"bio\"                         \"critical\"                   \n[19] \"gender\"                      \"item_id\"                    \n[21] \"list\"                        \"match\"                      \n[23] \"condition\"                   \"name\"                       \n[25] \"name_vital_status\"           \"tense\"                      \n[27] \"type\"                        \"yes_press\"                  \n\n\n\n\n\n\n2.5.2 rename()\n\nthe dependent variable names are pretty clunky, let’s rename a few:\n\nRECORDING_SESSION_LABEL corresponds to a single participant\nTRIAL_INDEX logged the trial number\nEYE_USED logged which eye was tracked\n\n\n\n\nCode\ndf_lifetime &lt;- df_lifetime %&gt;%\n  rename(\"px\" = RECORDING_SESSION_LABEL,\n         \"trial\" = TRIAL_INDEX,\n         \"eye\" = EYE_USED)\n\n\n\n2.5.2.1 Naming variables\n\n\n\n\n\n\nNaming conventions\n\n\n\nIt’s wise to keep variable and object names concise but informative\n\nall lowercase means fewer key strokes overall\nseparate words with either periods or underscores, e.g., trial.index or trial_index\ne.g., we called our dataset df_lifetime because it is a dataframe (df) with data from our lifetime experiment\n\n\n\n\n\n\n2.5.3 Data structure\n\ndatasets typically contain a lot of rows and columns\n\nso we want to get a feel for how the data is structured\n\n\n\nwith base Rwith the tidyverse pipewith the native R pipe (Ctrl/Cmd+Shift+M)\n\n\n\nhead(df_lifetime)\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\ndf_lifetime %&gt;%\n  head()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\ndf_lifetime |&gt; \n  head()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n3 px3       3 RIGHT             0                       0                      0\n4 px3       3 RIGHT             0                       0                      0\n5 px3       3 RIGHT             0                       0                      0\n6 px3       3 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n\n\n\n2.5.4 head() function\n\nprints the first 6 rows of your data\n\nyou can also specify the number of rows\n\n\n\n\nCode\ndf_lifetime %&gt;%\n  head(n = 2)\n\n\n# A tibble: 2 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px3       1 RIGHT             0                       0                      0\n2 px3       2 RIGHT             0                       0                      0\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\nhead() function task\n\n\n\n\n\n\nExercise: head()\n\n\n\n\n\n\nprint only 2 rows using whichever syntax you prefer\nchange n = 2 to some other number and print\nrun ?head in the Console\n\nfind the opposite function (i.e., prints last rows) in the function description?\n\nrun this function with df_lifetime as argument; how many rows does it print as default?\nplay with n = in this function to print some other number of rows\n\n\n\n\n\n\n2.5.5 tail() function\n\nprints the last rows of a dataframe (or matrix, vector, table, or function)\n\n\ndf_lifetime %&gt;%\n  tail()\n\n# A tibble: 6 × 28\n  px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DUR…¹ IA_FIRST_RUN_DWELL_T…²\n  &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                   &lt;dbl&gt;                  &lt;dbl&gt;\n1 px4     207 LEFT            509                     218                    509\n2 px4     208 LEFT              0                       0                      0\n3 px4     208 LEFT            317                     167                    317\n4 px4     208 LEFT            162                     162                    162\n5 px4     208 LEFT            139                     139                    139\n6 px4     208 LEFT            280                     280                    280\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;,\n#   condition &lt;chr&gt;, name &lt;chr&gt;, name_vital_status &lt;chr&gt;, tense &lt;chr&gt;, …\n\n\n\n\n2.5.6 names()\n\nprints the column/variable names\n\n\ndf_lifetime %&gt;%\n  names()\n\n [1] \"px\"                          \"trial\"                      \n [3] \"eye\"                         \"IA_DWELL_TIME\"              \n [5] \"IA_FIRST_FIXATION_DURATION\"  \"IA_FIRST_RUN_DWELL_TIME\"    \n [7] \"IA_FIXATION_COUNT\"           \"IA_ID\"                      \n [9] \"IA_LABEL\"                    \"IA_REGRESSION_IN\"           \n[11] \"IA_REGRESSION_IN_COUNT\"      \"IA_REGRESSION_OUT\"          \n[13] \"IA_REGRESSION_OUT_COUNT\"     \"IA_REGRESSION_PATH_DURATION\"\n[15] \"KeyPress\"                    \"rt\"                         \n[17] \"bio\"                         \"critical\"                   \n[19] \"gender\"                      \"item_id\"                    \n[21] \"list\"                        \"match\"                      \n[23] \"condition\"                   \"name\"                       \n[25] \"name_vital_status\"           \"tense\"                      \n[27] \"type\"                        \"yes_press\"                  \n\n\n\n\n2.5.7 summary()\n\nprints a summary of each variable (column)\n\n\ndf_lifetime %&gt;%\n  summary()\n\n      px                trial           eye            IA_DWELL_TIME   \n Length:4431        Min.   :  1.0   Length:4431        Min.   :   0.0  \n Class :character   1st Qu.: 52.5   Class :character   1st Qu.:   0.0  \n Mode  :character   Median :104.0   Mode  :character   Median : 301.0  \n                    Mean   :105.0                      Mean   : 587.5  \n                    3rd Qu.:157.0                      3rd Qu.: 765.5  \n                    Max.   :208.0                      Max.   :8968.0  \n IA_FIRST_FIXATION_DURATION IA_FIRST_RUN_DWELL_TIME IA_FIXATION_COUNT\n Min.   :  0.0              Min.   :   0.0          Min.   : 0.000   \n 1st Qu.:  0.0              1st Qu.:   0.0          1st Qu.: 0.000   \n Median :161.0              Median : 245.0          Median : 2.000   \n Mean   :139.4              Mean   : 507.9          Mean   : 2.714   \n 3rd Qu.:202.5              3rd Qu.: 586.0          3rd Qu.: 4.000   \n Max.   :775.0              Max.   :8968.0          Max.   :35.000   \n     IA_ID         IA_LABEL         IA_REGRESSION_IN  IA_REGRESSION_IN_COUNT\n Min.   :1.000   Length:4431        Min.   :0.00000   Min.   :0.0000        \n 1st Qu.:1.000   Class :character   1st Qu.:0.00000   1st Qu.:0.0000        \n Median :2.000   Mode  :character   Median :0.00000   Median :0.0000        \n Mean   :2.681                      Mean   :0.09817   Mean   :0.1318        \n 3rd Qu.:4.000                      3rd Qu.:0.00000   3rd Qu.:0.0000        \n Max.   :6.000                      Max.   :1.00000   Max.   :5.0000        \n IA_REGRESSION_OUT IA_REGRESSION_OUT_COUNT IA_REGRESSION_PATH_DURATION\n Min.   :0.00000   Min.   :0.00000         Min.   :    0.0            \n 1st Qu.:0.00000   1st Qu.:0.00000         1st Qu.:    0.0            \n Median :0.00000   Median :0.00000         Median :  282.0            \n Mean   :0.08147   Mean   :0.09185         Mean   :  595.6            \n 3rd Qu.:0.00000   3rd Qu.:0.00000         3rd Qu.:  747.0            \n Max.   :1.00000   Max.   :7.00000         Max.   :10242.0            \n    KeyPress           rt            bio              critical        \n Min.   :4.000   Min.   :  533   Length:4431        Length:4431       \n 1st Qu.:4.000   1st Qu.: 1332   Class :character   Class :character  \n Median :4.000   Median : 1890   Mode  :character   Mode  :character  \n Mean   :4.496   Mean   : 2467                                        \n 3rd Qu.:5.000   3rd Qu.: 2910                                        \n Max.   :5.000   Max.   :15654                                        \n    gender             item_id            list          match          \n Length:4431        Min.   :  1.00   Min.   :14.00   Length:4431       \n Class :character   1st Qu.: 26.00   1st Qu.:15.00   Class :character  \n Mode  :character   Median : 51.00   Median :25.00   Mode  :character  \n                    Mean   : 64.16   Mean   :29.45                     \n                    3rd Qu.: 78.50   3rd Qu.:35.00                     \n                    Max.   :208.00   Max.   :45.00                     \n  condition             name           name_vital_status     tense          \n Length:4431        Length:4431        Length:4431        Length:4431       \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n     type             yes_press    \n Length:4431        Min.   :4.000  \n Class :character   1st Qu.:4.000  \n Mode  :character   Median :4.000  \n                    Mean   :4.499  \n                    3rd Qu.:5.000  \n                    Max.   :5.000  \n\n\n\n\n2.5.8 Exercise\nTake some time to explore the dataset.\n\ndouble click on the dataset name in the Environment pane to view it like a spreadsheet\nlook at the names, can you figure out what they represent?"
-  },
-  {
-    "objectID": "et_dataset.html#class-types",
-    "href": "et_dataset.html#class-types",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.6 class types",
-    "text": "2.6 class types\n\nthere are difference classes of data that R can read\n\nthe function class() takes as its argument an object or number\n\n\n\ndf_lifetime$rt %&gt;%\n  class()\n\n[1] \"numeric\""
-  },
-  {
-    "objectID": "et_dataset.html#section-1",
-    "href": "et_dataset.html#section-1",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.7 ",
-    "text": "2.7 \n\n\n\n\n\n\nSelecting a column\n\n\n\n\n\n\n# with column index\ndf_lifetime[2] %&gt;% summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n# with column name\ndf_lifetime[,\"trial\"] %&gt;% summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n# with data$column_name\ndf_lifetime$trial %&gt;% summary()\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n    1.0    52.5   104.0   105.0   157.0   208.0 \n\n\n\n# with the tidyverse: select()\ndf_lifetime %&gt;% \n  select(trial) %&gt;%\n  summary()\n\n     trial      \n Min.   :  1.0  \n 1st Qu.: 52.5  \n Median :104.0  \n Mean   :105.0  \n 3rd Qu.:157.0  \n Max.   :208.0  \n\n\n\n\n\n\n2.7.1 character class\n\ncontain strings: collection of characters (i.e., text)\nthere’s no grouping in character variables\n\neach value is considered ‘unique’ and assumed to not be repeated\n\nwe usually aren’t interested in character class variables\n\nunless e.g., we have unique values per row (e.g., if a participant gave a free-text answer)\nor perhaps we have stored some stimuli sentences\n\nalthough this would arguably be better as a ‘category’, since there should be multiple trials across participants that contain the same sentences\n\n\n\n\n\n2.7.2 numeric class\n\nvariables with numeric values, usually some variable we’d want to compute summaries on, e.g., means\nsometimes we don’t want numbers to be stored as numeric class, however\n\nthis is the case for our variables yes_press and KeyPress (with 4 or 5)\n\nthe same is true for our variable item_id, which ranges from 1:120\n\nthe numbers are just unique codes for our stimuli, the difference between item 1 and item 2 has nothing to do with the difference between the numbers 1 and 2\n\n\n\n\n2.7.3 factor class\n\nwe typically want grouping variables to be factor class\n\nfactors contain categorical data\nany number that could be replaced with some other label should be a factor\n\nregion of interest (ROI) = 1:7\n\nbut we want to know how many observations per region, the number is not informative\nROI could alternatively be coded as, e.g., “adverb”, “pronoun”, “verb”, “spillover”\n\n\n\n\nfactor class\n\nlet’s change df_lifetime$yes_press to factor\n\nusing the mutate() verb from dplyr\nand as_factor() from forcats\n\n\n\n# change yes_press to factor\ndf_lifetime %&gt;%\n  mutate(yes_press = as_factor(yes_press))\n\n# A tibble: 4,431 × 28\n   px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DU…¹ IA_FIRST_RUN_DWELL_T…²\n   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                  &lt;dbl&gt;                  &lt;dbl&gt;\n 1 px3       1 RIGHT             0                      0                      0\n 2 px3       2 RIGHT             0                      0                      0\n 3 px3       3 RIGHT             0                      0                      0\n 4 px3       3 RIGHT             0                      0                      0\n 5 px3       3 RIGHT             0                      0                      0\n 6 px3       3 RIGHT             0                      0                      0\n 7 px3       3 RIGHT             0                      0                      0\n 8 px3       3 RIGHT             0                      0                      0\n 9 px3       4 RIGHT             0                      0                      0\n10 px3       5 RIGHT             0                      0                      0\n# ℹ 4,421 more rows\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;dbl&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;dbl&gt;, list &lt;dbl&gt;, match &lt;chr&gt;, …\n\n\n\n\n2.7.4 multiple arguments in a verb\n\nwe can also change multiple columns at once:\n\n\n# change ROI & label to factor\ndf_lifetime %&gt;%\n  mutate(KeyPress = as_factor(KeyPress),\n         item_id = as_factor(item_id))\n\n# A tibble: 4,431 × 28\n   px    trial eye   IA_DWELL_TIME IA_FIRST_FIXATION_DU…¹ IA_FIRST_RUN_DWELL_T…²\n   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;                  &lt;dbl&gt;                  &lt;dbl&gt;\n 1 px3       1 RIGHT             0                      0                      0\n 2 px3       2 RIGHT             0                      0                      0\n 3 px3       3 RIGHT             0                      0                      0\n 4 px3       3 RIGHT             0                      0                      0\n 5 px3       3 RIGHT             0                      0                      0\n 6 px3       3 RIGHT             0                      0                      0\n 7 px3       3 RIGHT             0                      0                      0\n 8 px3       3 RIGHT             0                      0                      0\n 9 px3       4 RIGHT             0                      0                      0\n10 px3       5 RIGHT             0                      0                      0\n# ℹ 4,421 more rows\n# ℹ abbreviated names: ¹​IA_FIRST_FIXATION_DURATION, ²​IA_FIRST_RUN_DWELL_TIME\n# ℹ 22 more variables: IA_FIXATION_COUNT &lt;dbl&gt;, IA_ID &lt;dbl&gt;, IA_LABEL &lt;chr&gt;,\n#   IA_REGRESSION_IN &lt;dbl&gt;, IA_REGRESSION_IN_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_OUT &lt;dbl&gt;, IA_REGRESSION_OUT_COUNT &lt;dbl&gt;,\n#   IA_REGRESSION_PATH_DURATION &lt;dbl&gt;, KeyPress &lt;fct&gt;, rt &lt;dbl&gt;, bio &lt;chr&gt;,\n#   critical &lt;chr&gt;, gender &lt;chr&gt;, item_id &lt;fct&gt;, list &lt;dbl&gt;, match &lt;chr&gt;, …\n\n\n\n\n2.7.5 Pop quiz\n\nWhich class should the following variables be (numeric, factor, or character)?:\n\nparticipant ID\ntrial number\nfirst-pass reading time\nregression path duration\nregressions in\ncontext sentence\nlifetime\ntense\ncelebrity name\n\nchange them to these class types, and print a summary\nsave and render the document"
-  },
-  {
-    "objectID": "et_dataset.html#plot-the-data",
-    "href": "et_dataset.html#plot-the-data",
-    "title": "Working with eye-tracking reading data in R",
-    "section": "2.8 Plot the data",
-    "text": "2.8 Plot the data\n\n\nat this stage we want to explore the data\n\ndistribution\n\npeaks, spread\n\nboundaries\n\n\n\n\n\nHistogram\n\nhist(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\nBoxplot\n\nboxplot(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\nScatterplot\n\nplot(df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\n\n\n2.8.1 Plotting two variables\nScatterplot\n\nplot(df_lifetime$IA_FIRST_FIXATION_DURATION, df_lifetime$IA_FIRST_RUN_DWELL_TIME)\n\n\n\n\n\n\n2.8.2 Exercise\nIn your Quarto document:\n\ncreate a heading ‘Data exploration’\n\n\nbriefly describe the data\n\n\nFor each of our depenent variables:\n\n\ncreate a subheading\ncalculate the mean and standard deviation of the variable (mean(), sd()) + create a boxplot of the variable\n\n\nRender the document often to make sure it runs\nUpload the source file (day1-nachname_vorname.qmd) to Moodle\ndownload the source file below yours in the list to the same folder, and try to run it\n\n\ndoes it run?\n\n\n\n2.8.3 \n\n\n\n\n\n\nprint options\n\n\n\n\neach code chunk can have different print options:\n\neval = FALSE: do not evaluate this chunk\ninclude = FALSE evaluate this chunk but don’t show it or its results\necho = FALSE print this chunk code\nmessage = FALSE/warning = false don’t print warnings or messages\nerror = TRUE continue rendering document even if there’s an error\n\ndo not use error = TRUE for final versions! You want to make sure things work as they should\n\n\n\n```{r, eval = T, echo = T, results = \"asis\", warning}\ncode here\n```\nor\n```{r}\n#| eval: false\ncode here\n```"
-  },
-  {
-    "objectID": "et_reading.html",
-    "href": "et_reading.html",
-    "title": "Eye-tracking during reading",
-    "section": "",
-    "text": "Error: '_et_reading.qmd' does not exist in current working directory ('/Users/danielapalleschi/Documents/Personal/repo-eda')."
-  },
-  {
-    "objectID": "et_reading.html#eye-movements",
-    "href": "et_reading.html#eye-movements",
-    "title": "Eye-tracking during reading",
-    "section": "1.1 Eye movements",
-    "text": "1.1 Eye movements\n\nsaccades: eye movements (e.g., from one word to another)\n\naverage saccade legnth: 7-9 letters (in alphabetic writing systems)\n\nfixations: ‘looking at’ something, e.g., a word (little movement)\n\nwhen information is taken in\naverage duration: 225-250ms (ranging 50-600ms)\n\nregressions: saccades to earlier text\n\noccurance: 10-15% of saccades in skilled readers\n\n\n\n(rayner_eye_2009-1?)"
-  },
-  {
-    "objectID": "et_reading.html#the-eye-tracker",
-    "href": "et_reading.html#the-eye-tracker",
-    "title": "Eye-tracking during reading",
-    "section": "1.2 The eye-tracker",
-    "text": "1.2 The eye-tracker\n\n\n\neye-tracker\n\ncamera \\(+\\) infrared illuminator\n\nscreen\nchin/head rest\nin our lab: desk-mounted\n\n\n\n\n\n\n\nImage source: SR Research (all rights reserved)"
-  },
-  {
-    "objectID": "et_reading.html#eye-tracking-reading-measures",
-    "href": "et_reading.html#eye-tracking-reading-measures",
-    "title": "Eye-tracking during reading",
-    "section": "2.1 Eye-tracking reading measures",
-    "text": "2.1 Eye-tracking reading measures\n\ninform theories of language processing via linking hypotheses\n\nlinking visual attention to processing\n\ntypically, we compare reading times as a function of some manipulation\n\ne.g., Sally went/goed to the store.\n\nlonger reading times are taken to reflect processing costs, associated with e.g., sentence complexity or anomalies"
-  },
-  {
-    "objectID": "et_reading.html#region-of-interest-roi",
-    "href": "et_reading.html#region-of-interest-roi",
-    "title": "Eye-tracking during reading",
-    "section": "2.2 Region of interest (ROI)",
-    "text": "2.2 Region of interest (ROI)\n\ncan be anything on-screen\n\nsentence-level\nword/region-level\na certain part of the screen\n\n\n\n\n\n\nVideo"
-  },
-  {
-    "objectID": "et_reading.html#measures-dependent-variables",
-    "href": "et_reading.html#measures-dependent-variables",
-    "title": "Eye-tracking during reading",
-    "section": "2.3 Measures (dependent variables)",
-    "text": "2.3 Measures (dependent variables)\n\nwhat we measure = dependent variables (usually…)\n\ntheir value depends on some predictor (e.g., word frequency)\n\n\n\n\n\nmeasures of duration (time spent on a region)\n\nfirst fixation\nfirst-pass reading time\nregression path duration\ntotal reading time\n\ndata type: continuous\n\n\n\nmeasures of revisits\n\nnumber of fixations\nnumber of regressions in/out\nregression in/out (yes or no)\nprobability of regressions in/out (0:1)\n\ndata type: binary (0,1) or count"
-  },
-  {
-    "objectID": "et_reading.html#independent-variables",
-    "href": "et_reading.html#independent-variables",
-    "title": "Eye-tracking during reading",
-    "section": "2.4 Independent variables",
-    "text": "2.4 Independent variables\n\nwhat can influence reading measures? (juhasz_lexical_2011?; rayner_linguistic_2011?; warren_influence_2011?; clifton_syntactic_2011?)\n\nsome examples:\n\n\n\n\n\nWord properties\n\nword frequency\nword length\n\n\n\n\nSentence-level influences\n\ncontext (i.e., prediction)\nsemantic or grammatical manipulations\n\n\n\n\nInter- and intra-individual\n\ndomain-specific expertise\nreading skill level"
-  },
-  {
-    "objectID": "et_reading.html#what-do-these-measures-tell-us",
-    "href": "et_reading.html#what-do-these-measures-tell-us",
-    "title": "Eye-tracking during reading",
-    "section": "2.5 What do these measures tell us?",
-    "text": "2.5 What do these measures tell us?\n\neye-tracking during reading can tell use when and where processing costs are incurred\nearly measures involve “first contact with a word” or region: first-fixation, first-pass reading time (vasishth_what_2013?)\nlate measures involve regressions to a region: e.g., total reading time\n\nmay also include ‘spillover’ effects from early processing\n\neye-tracking during reading measures can therefore tell us about stages of processing"
-  },
-  {
-    "objectID": "syllabus.html",
-    "href": "syllabus.html",
-    "title": "",
-    "section": "",
-    "text": "Code"
-  },
-  {
-    "objectID": "syllabus.html#skills-and-know-how",
-    "href": "syllabus.html#skills-and-know-how",
-    "title": "",
-    "section": "Skills and know-how",
-    "text": "Skills and know-how\nAt the end of the course, you will:\n\nhave an understanding of common eye-tracking reading measures\nbe able to visualise reading times\nbe able to run linear mixed models on reading times\nbe able to set-up and maintain a reproducible workflow in RStudio"
-  },
-  {
-    "objectID": "syllabus.html#important-dates",
-    "href": "syllabus.html#important-dates",
-    "title": "",
-    "section": "Important dates",
-    "text": "Important dates\n\nMay 31st: first report due\n\nreproducible analysis report\npre-registration of next dataset\n\nAugust 15th: second report due\n\nreporiducible analysis report\nsummary of confirmatory and exploratory analyses"
-  },
-  {
-    "objectID": "syllabus.html#schedule-overview",
-    "href": "syllabus.html#schedule-overview",
-    "title": "",
-    "section": "Schedule overview",
-    "text": "Schedule overview\n\n\n\n\n\n\n\n\n\nDate\nTopic(s)\n\n\n1\nWed. April 12, 2023\n10:15 - 11:45\nReproducible workflow with RStudio\nReading: Kathawalla et al. (2021) |\n\n\n2\nWed. April 12, 2023\n12:15 - 1:45\nEye-tracking during reading\nReading: Vasishth et al. (2013); Clifton et al. (2007)\n\n\n3\nWed. April 12, 2023\n2:15 - 3:45\nWorking with a dataset: loading and inspecting the data\n\n\n4\nThurs. April 13, 2023\nData Wrangling and summary statistics\n\n\n5\nThurs. April 13, 2023\nData Visualisation\n\n\n6\nThurs. April 13, 2023\nCommunicating your results\n\n\n7\nFri. April 14, 2023\nLinear regression\nReading: Winter (2013) (p.1-11); Winter (2019) (Ch. 4 and 6) |\n\n\n8\nFri. April 14, 2023\nMultiple regression\nReading: (from pg.11); Winter (2019) (Ch. 5 and | 6)\n\n\n9\nFri. April 14, 2023\nLinear mixed models\nReading: Winter (2014), Winter (2019) (Ch. 14)\n\n\n\nApril 15-June 29\nIndividual work\n\n\n10\nFri. June 30, 2023\nGeneralised linear mixed models\nReading: Winter (2019) (Ch. 12)\n\n\n11\nFri. June 30, 2023\nGeneralised linear mixed models\nReading: Winter (2019) (Ch. 13)\n\n\n12\nSat. July 1, 2023\n(Generalised) linear mixed models continued\nReading: Winter (2019) (Ch. 13)\n\n\n13\nSat. July 1, 2023\nPlaceholder session\nReserved for Q&A or extra time for a previous topic\n\n\n14\nSat. July 1, 2023\nChoose your own adventure\nTBD by class vote held at the end of Day 3"
+    "objectID": "mult_reg.html#plotting-an-interaction",
+    "href": "mult_reg.html#plotting-an-interaction",
+    "title": "7  Multiple Regression",
+    "section": "10.2 Plotting an interaction",
+    "text": "10.2 Plotting an interaction\n\n\n\n\n\nFigure 10.1: Plotting our two predictors\n\n\n\n\n\n10.2.1 Plotting an interaction with sjPlot\n\nfig_sjplot_coef &lt;- plot_model(fit_fp_inter) +\n  geom_hline(yintercept=0) +\n  theme_bw()\n\nfig_sjplot_int &lt;- plot_model(fit_fp_inter, type = \"int\") +\n  geom_hline(yintercept=0) +\n  geom_line(group=1) +\n  theme_bw()\n\n\nfig_sjplot_coef + fig_sjplot_int + plot_annotation(tag_levels = \"A\")\n\n\n\n\nFigure 10.2: Plotting model coefficients (A) and interactions (B) with the sjPlot package"
   }
 ]

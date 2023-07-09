@@ -4,7 +4,7 @@ format:
   html: default
 ---
 
-# Course Intro
+# Course Intro {.unnumbered}
 
 Welcome to the website for the course "Reproducible analysis reports with eye-tracking reading time data" for the Summer Semester 2023. Some quick info about the course:
 
