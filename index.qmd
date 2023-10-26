@@ -2,6 +2,7 @@
 format: 
   pdf: default
   html: default
+  epub: default
 ---
 
 # Course Intro {.unnumbered}

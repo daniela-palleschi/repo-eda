@@ -73,6 +73,7 @@ rbbt::bbt_update_bib("_welcome.qmd")
 
 # Welcome!
 
+Welcome to the 
 -   the language of instruction is English
 -   Block course:
     -   April 12-14 (10am-4pm)
